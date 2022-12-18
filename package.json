@@ -1,5 +1,5 @@
 {
-  "name": "multimode-cast",
+  "name": "multimodal-cast",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
@@ -54,6 +54,6 @@
     "postinstall": "patch-package"
   },
   "keywords": [],
-  "author": "tge",
+  "author": "SYC",
   "description": "GUI Editor for Canis"
 }
