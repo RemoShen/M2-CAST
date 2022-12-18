@@ -10,7 +10,6 @@ import {
   translateChart,
 } from "./util/tool";
 import { player } from "./redux/views/slider/player";
-import { Ava } from "./app/core/Ava";
 import { BTN_CLS } from "./redux/views/buttons/button-consts";
 import {
   callSysMenu,
@@ -43,18 +42,12 @@ import {
   DRAGGING,
   ZOOM_CHART,
   toggleSystemTouch,
-  doubleTaptoggleVideo,
-  DOUBLE_TAP_TOGGLE_VIDEO,
-  tapChart,
-  TAP_CHART,
 } from "./redux/views/panels/interactions";
 import { toggleVideoMode } from "./redux/action/videoAction";
 import { jsTool } from "./util/jsTool";
 import { markSelection } from "./util/markSelection";
 import AniMIL from "./mil/AniMIL";
-import InputTouch from "./mil/input/inputs/touch";
 import { kfContainer } from "./redux/views/vl/kfContainer";
-import { updateEffectType } from "./redux/action/canisAction";
 function app(): HTMLDivElement {
   const outerWrapper: HTMLDivElement = document.createElement("div");
   outerWrapper.id = "appWrapper";
@@ -66,7 +59,6 @@ function app(): HTMLDivElement {
   });
   innerWrapper.wrapper.classList.add("inner-wrapper");
 
-  //create main panels
   //create chart view
   const chartView: ViewWindow = new ViewWindow(CHART_VIEW_TITLE, false);
   chartView.createView();
@@ -81,12 +73,6 @@ function app(): HTMLDivElement {
 
   nav.createNav();
   outerWrapper.appendChild(nav.navContainer);
-
-  // const footer: HTMLDivElement = document.createElement('div');
-  // footer.id = 'footer';
-  // footer.className = 'footer';
-  // outerWrapper.appendChild(footer);
-  Ava.init();
   return outerWrapper;
 }
 
@@ -176,59 +162,6 @@ const documentPointerDown = (e: PointerEvent) => {
 
 document.addEventListener("pointerdown", documentPointerDown);
 
-//touch events: pinch, move
-// let touchDown: boolean = false, touchTarget: string, preDist: number, prePosi: ICoord, touchPntSvgNoScale: ICoord, latestTouch: number = 0;
-// const generalTouchStart = (e: TouchEvent) => {
-//     if (!state.sketching) {
-//         //detect double tap
-//         const currentTouch: number = new Date().getTime();
-//         const timeDiff: number = currentTouch - latestTouch;
-//         if (timeDiff < 300 && e.touches.length === 1) {//double tap
-//             resetChartScaleAndTrans();
-//         } else {
-//             touchDown = true;
-//             touchTarget = detectDownArea(e.touches[0].target, { x: e.touches[0].pageX, y: e.touches[0].pageY });
-//             prePosi = { x: e.touches[0].pageX, y: e.touches[0].pageY };
-//             const svg: HTMLElement = document.getElementById('visChart');
-//             const touchPntSvg: ICoord = screenToSvgCoords(svg, prePosi.x, prePosi.y);
-//             touchPntSvgNoScale = { x: touchPntSvg.x / state.chartScaleRatio, y: touchPntSvg.y / state.chartScaleRatio };
-//             if (e.touches.length === 2) {//start to pinch
-//                 preDist = pointDist({ x: e.touches[0].pageX, y: e.touches[0].pageY }, { x: e.touches[1].pageX, y: e.touches[1].pageY });
-//             }
-//         }
-//         latestTouch = currentTouch;
-//     }
-// }
-// const generalTouchMove = (e: TouchEvent) => {
-//     if (touchDown && !state.sketching) {
-//         if (e.touches.length === 1) {//moving
-//             const currentPosi: ICoord = { x: e.touches[0].pageX, y: e.touches[0].pageY };
-//             if (touchTarget === 'chart') {
-//                 translateChart({ x: currentPosi.x - prePosi.x, y: currentPosi.y - prePosi.y });
-//             } else if (touchTarget === 'keyframe') {
-
-//             }
-//             prePosi = currentPosi;
-//         } else if (e.touches.length === 2) {//pinching
-//             const currentDist: number = pointDist({ x: e.touches[0].pageX, y: e.touches[0].pageY }, { x: e.touches[1].pageX, y: e.touches[1].pageY });
-//             const diff: number = currentDist - preDist;
-//             if (touchTarget === 'chart') {
-//                 const scaleNum: number = diff / 200;
-//                 scaleChart(scaleNum, touchPntSvgNoScale);
-//             } else if (touchTarget === 'keyframe') {
-
-//             }
-//             preDist = currentDist;
-//         }
-//     }
-// }
-// const generalTouchUp = (e: TouchEvent) => {
-//     document.removeEventListener('touchmove', generalTouchMove);
-//     document.removeEventListener('touchup', generalTouchUp);
-//     touchDown = false;
-// }
-// document.addEventListener('touchstart', generalTouchStart);
-// document.addEventListener('touchmove', generalTouchMove);
 
 //cancel right click
 document.oncontextmenu = () => {
@@ -239,9 +172,6 @@ document.onkeyup = (e) => {
   var event: any = e || window.event;
   var key = event.which || event.keyCode || event.charCode;
   if (key == 13) {
-    // if (typeof document.getElementById(Hint.TIMING_HINT_ID) !== 'undefined') {
-    //     hintTag.contentInput.blur();
-    // }
   } else if (key == 32) {
     if (player.playing) {
       player.pauseAnimation();
@@ -260,11 +190,7 @@ const documentTouch = new AniMIL(document.body);
 documentTouch.add(callSysMenu);
 documentTouch.add(selectSysMenu);
 documentTouch.add(dragging);
-// documentTouch.add(dragKf);
 documentTouch.add(zoomChart);
-
-// documentTouch.add(tapChart);
-// documentTouch.add(doubleTaptoggleVideo);
 
 //chart pan & zoom
 let preChartPosi: ICoord = null;
@@ -392,25 +318,6 @@ documentTouch.on(`${ZOOM_CHART}end`, (e: any) => {
   scaleStartPnt = null;
 });
 
-// documentTouch.on(`${TAP_CHART}up`, (e: any) => {
-//     console.log('tapping chart: ', e);
-//     markSelection.tappingChart(<SVGElement>e.target, e.center);
-// })
-
-// documentTouch.on(`${DOUBLE_TAP_TOGGLE_VIDEO}up`, (e: any) => {
-//     // resetChartScaleAndTrans();
-//     const chartArea: DOMRect = document.getElementById(CHART_VIEW_CONTENT_ID).getBoundingClientRect();
-//     const kfArea: DOMRect = document.getElementById(KF_VIEW_CONTENT_ID).getBoundingClientRect();
-//     if (jsTool.inBoundary(chartArea, e.center)) {
-//         if (player.shown) {
-//             store.dispatch(toggleVideoMode(false));
-//         } else {
-//             store.dispatch(toggleVideoMode(true));
-//         }
-//     } else if (jsTool.inBoundary(kfArea, e.center)) {
-
-//     }
-// })
 
 //system menu
 documentTouch.on(CALL_SYS_MENU, (e: any) => {
