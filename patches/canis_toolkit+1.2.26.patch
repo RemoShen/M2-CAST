@@ -1,0 +1,170 @@
+diff --git a/node_modules/canis_toolkit/index.js b/node_modules/canis_toolkit/index.js
+index 2067f55..cc0b39b 100644
+--- a/node_modules/canis_toolkit/index.js
++++ b/node_modules/canis_toolkit/index.js
+@@ -18421,7 +18421,7 @@ function () {
+                     [].forEach.call(marks, function (mark) {
+                       if (mark.classList.contains('mark')) {
+                         var markId = mark.getAttribute('id');
+-                        var markCls = mark.getAttribute('class');
++                        var markCls = markId.slice(0,markId.length-3);
+ 
+                         if (typeof idxForEachCls.get(markCls) === 'undefined') {
+                           idxForEachCls.set(markCls, 0);
+@@ -18580,7 +18580,13 @@ function () {
+   }, {
+     key: "sortSelector",
+     value: function sortSelector(selector) {
+-      var selectorBlocks = selector.split(', '); //should be in the form #mark1 #mark2 ...
++      var selectorBlocks;
++
++      if(selector.includes('.')){
++        selectorBlocks = [...document.querySelector('#visChart').querySelectorAll(selector)].filter(x=>x.getAttribute('id')).map(x=>'#'+x.getAttribute('id'))
++      }else{
++        selectorBlocks = selector.split(', '); //should be in the form #mark1 #mark2 ...
++      }
+ 
+       if (selectorBlocks.length > 0) {
+         // console.log('before sort selector: ', selectorBlocks);
+@@ -18863,10 +18869,26 @@ function () {
+     value: function removeTransAndMerge() {
+       var that = this;
+       var datumMarkMapping = new Map();
++      var encodingMapping = new Map();
+ 
+       for (var i = 0; i < ChartSpec.charts.length; i++) {
+         ChartSpec.charts[i].setAttribute('trans', '0,0');
+-        ChartSpec.removeTransitions(ChartSpec.charts[i].children[0], datumMarkMapping);
++        ChartSpec.removeTransitions(ChartSpec.charts[i].children[0], datumMarkMapping, encodingMapping);
++      }
++
++      for (var [encoding, mapping] of encodingMapping) {
++        Object.entries(mapping).forEach(([field, kv])=> {
++          if((new Set(Object.values(kv))).size == Object.values(kv).length){
++            if (typeof this.chartUnderstanding[field] === 'undefined') {
++              this.chartUnderstanding[field] = [];
++            }
++
++            this.chartUnderstanding[field].push(encoding);
++            if(['fill', 'stroke'].includes(encoding)){
++              this.chartUnderstanding[field].push('color');
++            }
++          }
++        })
+       }
+ 
+       var datumMarkArr = Array.from(datumMarkMapping).map(function (item) {
+@@ -19201,7 +19223,7 @@ function () {
+     }
+   }, {
+     key: "removeTransitions",
+-    value: function removeTransitions(t, datumMarkMapping) {
++    value: function removeTransitions(t, datumMarkMapping, encodingMapping) {
+       //extract fill, stroke and stroke-width out
+       if (typeof t.style.fill !== 'undefined' && t.style.fill) {
+         if (typeof t.getAttribute('fill') === 'undefined' || !t.getAttribute('fill')) {
+@@ -19284,6 +19306,28 @@ function () {
+           }
+ 
+           datumMarkMapping.get(pureDatumStr).push(tmpId);
++
++          ['fill', 'stroke'].forEach((attr)=>{
++            if (!encodingMapping.has(attr)) {
++              encodingMapping.set(attr, Object.fromEntries(Object.keys(pureDatum).map((key)=>[key, {}])));
++            }
++            Object.entries(pureDatum).forEach(([key, value]) => {
++              var varList = encodingMapping.get(attr);
++              if (key in varList) {
++                var appr = t.getAttribute(attr);
++                if (appr != 'none') {
++                  if (value in varList[key]) {
++                    if (varList[key][value] != appr) {
++                      delete varList[key];
++                    }
++                  } else {
++                    varList[key][value] = appr;
++                  }
++                }
++              }
++            })
++          })
++
+         }
+       }
+ 
+@@ -19347,7 +19391,7 @@ function () {
+ 
+       if (t.children.length > 0) {
+         for (var _i3 = 0; _i3 < t.children.length; _i3++) {
+-          ChartSpec.removeTransitions(t.children[_i3], datumMarkMapping);
++          ChartSpec.removeTransitions(t.children[_i3], datumMarkMapping, encodingMapping);
+         }
+       }
+     }
+@@ -19729,7 +19773,6 @@ function (_TimingSpec) {
+               tmpNode.delay = delay;
+             } //re-sort the children of t
+ 
+-
+             this.sortNodes(this.sort, t, nodesThisLevel, domMarks);
+           } else {
+             t.children = [];
+@@ -19784,8 +19827,12 @@ function (_TimingSpec) {
+           nodesThisLevel.set(refValue, tmpObj);
+         }
+       } //order nodes of this level according to the 'sort' spec
+-
+-
++      // console.log('thissort',this.sort);
++      // if(JSON.stringify(this.sort) != '{}'){
++      //   if(this.sort.order[0] === 'a0'){
++      //     this.sort.order.push('a1')
++      //   }
++      // }
+       this.sortNodes(this.sort, t, nodesThisLevel, domMarks); // console.log('nodes this level: ', this.sort, nodesThisLevel, t);
+ 
+       if (typeof this.grouping !== 'undefined') {
+@@ -20043,7 +20090,6 @@ function (_TimingSpec) {
+ 
+       for (var _i4 = 0; _i4 < t.marks.length; _i4++) {
+         markAni.get(t.marks[_i4]).startTime += t.start;
+-
+         if (markAni.get(t.marks[_i4]).startTime + markAni.get(t.marks[_i4]).totalDuration > t.end) {
+           t.end = markAni.get(t.marks[_i4]).startTime + markAni.get(t.marks[_i4]).totalDuration;
+         }
+@@ -21512,7 +21558,7 @@ function () {
+       var tx = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+       var ty = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+       var diffCmds = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : new Map();
+-      d = d.replace(/(?<=\d)\s(?=[mMlLhHvVcCsSqQtTaAzZ])/g, '').replace(/(?<=[mMlLhHvVcCsSqQtTaA])\s(?=(\d|[-+]))/g, '').replace(/\s/g, ',');
++      d = d.replace(/(\d)\s(?=[mMlLhHvVcCsSqQtTaAzZ])/g, '$1').replace(/([mMlLhHvVcCsSqQtTaA])\s(?=(\d|[-+]))/g, '$1').replace(/\s/g, ',');
+       var cmdRegExp = new RegExp(/[mMlLhHvVcCsSqQtTaAzZ][^mMlLhHvVcCsSqQtTaAzZ]*/g);
+       var resultCmd = '';
+       var cmds = d.match(cmdRegExp);
+@@ -21684,8 +21730,8 @@ function () {
+   }, {
+     key: "calTransD",
+     value: function calTransD(startD, endD, ratio, startDisD, endDisD) {
+-      startD = startD.replace(/(?<=\d)\s(?=[mMlLhHvVcCsSqQtTaAzZ])/g, '').replace(/(?<=[mMlLhHvVcCsSqQtTaA])\s(?=(\d|[-+]))/g, '').replace(/\s/g, ',');
+-      endD = endD.replace(/(?<=\d)\s(?=[mMlLhHvVcCsSqQtTaAzZ])/g, '').replace(/(?<=[mMlLhHvVcCsSqQtTaA])\s(?=(\d|[-+]))/g, '').replace(/\s/g, ',');
++      startD = startD.replace(/(\d)\s(?=[mMlLhHvVcCsSqQtTaAzZ])/g, '$1').replace(/([mMlLhHvVcCsSqQtTaA])\s(?=(\d|[-+]))/g, '$1').replace(/\s/g, ',');
++      endD = endD.replace(/(\d)\s(?=[mMlLhHvVcCsSqQtTaAzZ])/g, '$1').replace(/([mMlLhHvVcCsSqQtTaA])\s(?=(\d|[-+]))/g, '$1').replace(/\s/g, ',');
+       var resultCmd = '';
+ 
+       if (ratio === 0) {
+@@ -21769,13 +21815,13 @@ function () {
+       var cmdRegExp = new RegExp(/[mlhvcsqta][^mlhvcsqtaz]*/g);
+       var firstD = dArr[0];
+       firstD = firstD.toLowerCase();
+-      firstD = firstD.replace(/(?<=\d)\s(?=[mlhvcsqtaz])/g, '').replace(/(?<=[mlhvcsqta])\s(?=(\d|[-+]))/g, '').replace(/\s/g, ',');
++      firstD = firstD.replace(/(\d)\s(?=[mlhvcsqtaz])/g, '$1').replace(/([mlhvcsqta])\s(?=(\d|[-+]))/g, '$1').replace(/\s/g, ',');
+       var firstDCmds = firstD.match(cmdRegExp);
+ 
+       for (var i = 1; i < dArr.length; i++) {
+         var tmpD = dArr[i];
+         tmpD = tmpD.toLowerCase();
+-        tmpD = tmpD.replace(/(?<=\d)\s(?=[mlhvcsqtaz])/g, '').replace(/(?<=[mlhvcsqta])\s(?=(\d|[-+]))/g, '').replace(/\s/g, ',');
++        tmpD = tmpD.replace(/(\d)\s(?=[mlhvcsqtaz])/g, '$1').replace(/([mlhvcsqta])\s(?=(\d|[-+]))/g, '$1').replace(/\s/g, ',');
+         var tmpDCmds = tmpD.match(cmdRegExp);
+ 
+         for (var j = 0; j < firstDCmds.length; j++) {
