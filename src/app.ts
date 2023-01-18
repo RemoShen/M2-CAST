@@ -2,7 +2,6 @@ import "./redux/assets/style/app.scss";
 import { nav } from "./redux/views/nav/nav";
 import ResizablePanel from "./redux/views/panels/resizablePanel";
 import ViewWindow from "./redux/views/panels/viewWindow";
-import { state } from "./app/state";
 import {
   detectCanTrigger,
   detectDownArea,
@@ -75,62 +74,18 @@ function app(): HTMLDivElement {
   outerWrapper.appendChild(nav.navContainer);
   return outerWrapper;
 }
-
-const documentPointerMove = (e: PointerEvent) => {
-  e.preventDefault();
-  if (e.pointerType === "pen" || e.pointerType === "mouse") {
-    sketchCanvas.drawing(e);
-  }
-};
-
 let lastUpTime: number = 0;
 let lastDownTime: number = 0;
 let isDoubleTapping: boolean = false;
 
-const documentPointerUp = (e: PointerEvent) => {
-  e.preventDefault();
-  KfItem.endDragging();
-  if (
-    sketchCanvas.sketching &&
-    (e.pointerType === "pen" || e.pointerType === "mouse")
-  ) {
-    sketchCanvas.endDrawing();
-    // sketchCanvas.touchType = TOUCH_NULL;
-  } else if (e.pointerType === "touch") {
-    lastUpTime = new Date().getTime();
-    const currentTime: number = new Date().getTime();
-    const diffTime: number = currentTime - lastDownTime;
-    if (diffTime < SINGLE_TAP_TIME) {
-      //single tapping
-      markSelection.tappingChart(<SVGElement>e.target, {
-        x: e.clientX,
-        y: e.clientY,
-      });
-    }
-  }
-  document.removeEventListener("pointermove", documentPointerMove);
-  document.removeEventListener("pointerup", documentPointerUp);
-};
-
-/**
- * check whether the user is using pen or finger to select
- * @param e
- */
 const documentPointerDown = (e: PointerEvent) => {
   e.preventDefault();
   const target = <HTMLElement>e.target;
   
-  // if (detectCanSketch(target)) {//for test
   if (
     detectCanTrigger(target, NON_SKETCH_CLS) &&
     (e.pointerType === "pen" || e.pointerType === "mouse")
   ) {
-    //can start drawing
-    // if (e.buttons === 2) {
-    //     Reducer.triger(action.UPDATE_TOUCH_TYPE, TOUCH_MULTI);
-    // } else {
-    //     Reducer.triger(action.UPDATE_TOUCH_TYPE, TOUCH_SINGLE);
-    // }
     sketchCanvas.toggleSketching(true, { x: e.clientX, y: e.clientY });
   } else if (e.pointerType === "touch") {
     e.preventDefault();
@@ -159,11 +114,40 @@ const documentPointerDown = (e: PointerEvent) => {
   document.addEventListener("pointermove", documentPointerMove);
   document.addEventListener("pointerup", documentPointerUp);
 };
+const documentPointerMove = (e: PointerEvent) => {
+  e.preventDefault();
+  if (e.pointerType === "pen" || e.pointerType === "mouse") {
+    sketchCanvas.drawing(e);
+  }
+};
+const documentPointerUp = (e: PointerEvent) => {
+  e.preventDefault();
+  KfItem.endDragging();
+  if (
+    sketchCanvas.sketching &&
+    (e.pointerType === "pen" || e.pointerType === "mouse")
+  ) {
+    sketchCanvas.endSketch();
+  } else if (e.pointerType === "touch") {
+    lastUpTime = new Date().getTime();
+    const currentTime: number = new Date().getTime();
+    const diffTime: number = currentTime - lastDownTime;
+    if (diffTime < SINGLE_TAP_TIME) {
+      //single tapping
+      markSelection.tappingChart(<SVGElement>e.target, {
+        x: e.clientX,
+        y: e.clientY,
+      });
+    }
+  }
+  document.removeEventListener("pointermove", documentPointerMove);
+  document.removeEventListener("pointerup", documentPointerUp);
+};
+
 
 document.addEventListener("pointerdown", documentPointerDown);
 
 
-//cancel right click
 document.oncontextmenu = () => {
   return false;
 };
@@ -247,7 +231,6 @@ documentTouch.on(DRAGGING, (e: any) => {
               directionLock = 0;
               kfContainer.scroll({
                 w: -(currentPosi.x - preChartPosi.x),
-                // h: -(currentPosi.y - preChartPosi.y),
               });
             } else if (
               directionLock === 1 ||
@@ -258,7 +241,6 @@ documentTouch.on(DRAGGING, (e: any) => {
             ) {
               directionLock = 1;
               kfContainer.scroll({
-                // w: -(currentPosi.x - preChartPosi.x),
                 h: -(currentPosi.y - preChartPosi.y),
               });
             }
@@ -310,7 +292,6 @@ documentTouch.on(ZOOM_CHART, (e: any) => {
     scaleChart(e.scale - preScale, touchPntSvgNoScale);
     preScale = e.scale;
   }
-  //TODO: touch other components
 });
 documentTouch.on(`${ZOOM_CHART}end`, (e: any) => {
   e.preventDefault();
@@ -348,9 +329,7 @@ documentTouch.on(
 );
 
 sketchCanvas.initCanvas();
-//init styles
 player.resizePlayer(player.widget.clientWidth - 198);
-state.reset(true);
 
 window.onresize = () => {
   player.resizePlayer(player.widget.clientWidth - 198);

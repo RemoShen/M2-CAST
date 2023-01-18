@@ -23,8 +23,6 @@ import FlareImg from "../../assets/img/examples/flare.png";
 import FlareChart from "../../assets/charts/flare.svg";
 import DynamicChart from "../../assets/charts/dynamic.svg";
 import DynamicImg from "../../assets/img/examples/dynamic.png";
-import UsPopulationImg from "../../assets/img/examples/usPopulation.png";
-import UsPopulationChart from "../../assets/charts/usPopulation.svg";
 import PurchaseLineChart from "../../assets/charts/purchases.svg";
 import PurchaseLineImg from "../../assets/img/examples/purchases.png";
 import Reducer from "../../../app/reducer";
@@ -97,10 +95,6 @@ export default class FloatingWindow {
         titleContent.innerHTML = "";
         windowContent.appendChild(this.createExampleList());
         break;
-      // case FloatingWindow.TYPE_SPEC:
-      //     titleContent.innerHTML = 'spec';
-      //     windowContent.appendChild(this.createSpecPanel());
-      //     break;
       default:
         break;
     }
@@ -161,9 +155,6 @@ export default class FloatingWindow {
     exampleItemContainer1.appendChild(
       this.createExampleItem(DEMO_CHART, "BarChart")
     );
-    // exampleItemContainer1.appendChild(
-    //   this.createExampleItem(POLIO_CHART, "Polio Incidence Rates")
-    // );
     exampleItemContainer1.appendChild(
       this.createExampleItem(CO2_CHART, "CO2 Emissions")
     );
@@ -192,9 +183,6 @@ export default class FloatingWindow {
     exampleItemContainer3.appendChild(
       this.createExampleItem(BOSTON_CHART, "Boston Weather")
     );
-
-
-    // exampleItemContainer3.appendChild(this.createExampleItem(FLARE_CHART, 'Flare'));
     exampleList.appendChild(exampleItemContainer3);
     return exampleList;
   }
@@ -255,13 +243,7 @@ export default class FloatingWindow {
                     targetEle: document.getElementById(VIDEO_VIEW_CONTENT_ID),
                     content: Loading.LOADING,
                   });
-                  // Reducer.triger(action.UPDATE_LOADING_STATUS, { il: true, srcDom: document.getElementById(VIDEO_VIEW_CONTENT_ID), content: Loading.LOADING });
                   setTimeout(() => {
-                    //reset state history
-                    // State.stateHistoryIdx = -1;
-                    // State.stateHistory = [];
-                    // State.tmpStateBusket = [];
-                    // Reducer.triger(action.LOAD_CHARTS, charts);
                     store.dispatch(updateSpecCharts(charts));
                   }, 1);
                   that.floatingWindow.remove();
@@ -388,58 +370,13 @@ export default class FloatingWindow {
       targetEle: document.body,
       content: Loading.LOADING,
     });
-    // Reducer.triger(action.UPDATE_LOADING_STATUS, { il: true, srcDom: document.body, content: Loading.LOADING });
     setTimeout(() => {
-      //reset state history
       State.stateHistoryIdx = -1;
       State.stateHistory = [];
       State.tmpStateBusket = [];
-
-      // Reducer.triger(action.LOAD_CHARTS, [chart]);
       store.dispatch(updateSpecCharts([chart]));
       this.floatingWindow.remove();
     }, 1);
   }
 
-  /**
-   * to test keyframes since there is no timeline view yet
-   */
-  // public createSpecPanel(): HTMLDivElement {
-  //     const wrapper: HTMLDivElement = document.createElement('div');
-  //     wrapper.style.width = '100%';
-  //     wrapper.style.height = '100%';
-  //     const specWrapper: HTMLDivElement = document.createElement('div');
-  //     specWrapper.style.width = '100%';
-  //     specWrapper.style.height = '30px';
-  //     specWrapper.appendChild(this.createTestSpecBtn('mushroomSpec', mushroomSpec));
-  //     specWrapper.appendChild(this.createTestSpecBtn('mushroomTest1', mushroomTest1));
-  //     // specWrapper.appendChild(this.createTestSpecBtn('ganttSpec', ganttSpec));
-  //     specWrapper.appendChild(this.createTestSpecBtn('osSpec', osSpec));
-  //     specWrapper.appendChild(this.createTestSpecBtn('purchasesSpec', purchasesSpec));
-  //     specWrapper.appendChild(this.createTestSpecBtn('nightingaleSpec', nightingaleSpec));
-  //     wrapper.appendChild(specWrapper);
-  //     const specPanel: HTMLTextAreaElement = document.createElement('textarea');
-  //     specPanel.style.width = '100%';
-  //     specPanel.style.height = '400px';
-  //     specPanel.id = 'specPanel';
-  //     specPanel.innerHTML = JSON.stringify(state.spec.animations, null, 2);
-  //     wrapper.appendChild(specPanel);
-  //     const renderBtn: HTMLButtonElement = document.createElement('button');
-  //     renderBtn.innerHTML = 'render spec';
-  //     renderBtn.onclick = () => {
-  //         let tmpSpec = JSON.parse(specPanel.value);
-  //         Reducer.triger(action.UPDATE_SPEC_ANIMATIONS, tmpSpec);
-  //         this.floatingWindow.remove();
-  //     }
-  //     wrapper.appendChild(renderBtn);
-  //     return wrapper;
-  // }
-  // public createTestSpecBtn(text: string, spec: any) {
-  //     const mushroomSpecBtn: HTMLButtonElement = document.createElement('button');
-  //     mushroomSpecBtn.innerHTML = text;
-  //     mushroomSpecBtn.onclick = () => {
-  //         document.getElementById('specPanel').innerHTML = JSON.stringify(spec, null, 2);
-  //     }
-  //     return mushroomSpecBtn;
-  // }
 }

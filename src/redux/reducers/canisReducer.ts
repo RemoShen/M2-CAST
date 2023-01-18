@@ -42,10 +42,7 @@ import CanisGenerator, {
 import Util from "../../app/core/util";
 import { Animation, TimingSpec } from "canis_toolkit";
 import { StateModifier } from "../../app/app-utils";
-import { Numeric } from "d3";
 import Suggest from "../../app/core/suggest";
-import { filter } from "lodash";
-import { jsTool } from "../../util/jsTool";
 
 export const canisReducer = (state: IState, action: IAction) => {
   if (typeof state !== "undefined") {
@@ -55,7 +52,6 @@ export const canisReducer = (state: IState, action: IAction) => {
         const currentSelectStep: string[][] = store.getState().selectMarksStep;
         const AllDataKfMarks: string[] =
         Util.separateDataAndNonDataMarks([...Util.filteredDataTable.keys()]).dataMarks;
-        // const NeedToRemove: boolean = jsTool.ifRemove(currentSelectStep);
         currentSelectStep.forEach((selectOneStep: string[]) => {
           let ifDataMark: boolean = true;
           selectOneStep.forEach((mark: string) => {
@@ -99,7 +95,6 @@ export const canisReducer = (state: IState, action: IAction) => {
           }
           return state;
         case UPDATE_SPEC_ANIMATIONS:
-          // const oriSpec = JSON.parse(JSON.stringify(state.spec));
           specCopy.animations = action.payload.array;
           return { ...state, spec: specCopy };
         case RESET_SPEC:
@@ -220,7 +215,6 @@ export const canisReducer = (state: IState, action: IAction) => {
             }
           });
           return { ...state, spec: specCopy };
-        // state.spec = { ...state.spec, animations: animations };
         case REMOVE_DELAY_BETWEEN_KF:
           specCopy.animations.forEach((a: IAnimationSpec) => {
             if (

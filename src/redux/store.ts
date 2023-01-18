@@ -4,7 +4,6 @@ import { reducer } from "./reducers/reducer";
 import {
   IActivatePlusBtn,
   IAttrAndSpec,
-  ICoord,
   IDataItem,
   IKeyframeGroup,
   IPath,
@@ -27,59 +26,49 @@ import { Animation, ChartSpec, ActionSpec, TimingSpec } from "canis_toolkit";
 import Suggest from "../app/core/suggest";
 import { IOrderInfo, RANDOM_ORDER } from "../util/markSelection";
 
-const VOICE_AWAKE: string = "voiceAwake";
-const CHART_SCALE_RATIO: string = "chartScaleRatio";
-// const LOADING: string = 'loading'
 const SHOW_VIDEO: string = "showVideo";
 const SELECTION: string = "selection";
 const SELECT_MARKS: string = "selectMarks";
+const SELECTION_FAKE: string = "selectionFake";
+const SELECT_MARKS_FAKE: string = "selectMarksFake";
 const SELECT_MARKS_STEP: string = "selectMarksStep";
-// const MARKS_TO_CONFIRM: string = "marksToConfirm";
+const SELECT_MARKS_STEP_FAKE: string = "selectMarksStepFake";
 const SPEC: string = "spec";
 const SORT_DATA_ATTRS: string = "sortDataAttrs";
-// const SYSTEM_TOUCH: string = 'systemTouch'
 const LOTTIE_SPEC: string = "lottieSpec";
-// const STATIC_MARKS: string = 'staticMarks'
 const KEYFRAME_GROUPS: string = "keyframeGroups";
 const ACTIVATE_PLUS_BTN: string = "activatePlusBtn";
 const HIGHLIGHT_KF: string = "highlightKf";
 const KF_ZOOM_LEVEL: string = "kfZoomLevel";
 const KF_GROUP_SIZE: string = "kfGroupSize";
-// const SKETCHING: string = 'sketching'
 const IS_PREVIEWING: string = "isPreviewing";
 const SUGGESTED_MARKS: string = "suggestedMarks";
 const SUGGEST_SPECS: string = "suggestSpecs";
-const CONFIRM_BTN: string = "confirmBtn";
 export interface IState {
   defaultChartScaleRatio: number;
   chartScaleRatio: number;
-  // dataOrder?: string[]
   dataTable?: Map<string, IDataItem>;
   lottieAni?: AnimationItem;
   isMouseMoving: boolean;
   previewPath?: IPath;
   previewSpec?: ICanisSpec;
   selectionOrder: IOrderInfo;
-  // marksInNewCreateKFG?: string[]
-  // activeSlider?: Slider
   suggestSpecs?: IAttrAndSpec[];
 
   //need listeners
-  voiceAwake: boolean;
-  // loading: ILoading
   showVideo: boolean;
   charts?: string[];
   selection?: string[]; //marks already selected
+  selectionfake?: string[]
   selectMarks?: Map<string, string[]>;
+  selectMarksfake?: Map<string, string[]>;
   selectMarksStep: string[][];
+  selectMarksStepFake: string[][];
   suggestedMarks?: string[];
   marksToConfirm: string[][];
   spec: ICanisSpec;
   sortDataAttrs?: ISortDataAttr[];
-  // systemTouch: boolean
   lottieSpec?: any;
-  // staticMarks?: string[]
-  // currentKf?: KfItem
 
   keyframeGroups?: IKeyframeGroup[]; //each keyframe group correspond to one root from one aniunit
   activatePlusBtn?: IActivatePlusBtn;
@@ -90,10 +79,6 @@ export interface IState {
   kfZoomLevel?: number;
   kfGroupSize?: ISize;
 
-  // sketching?: {
-  //     isSketching: boolean
-  //     startCoord: ICoord
-  // }
   isPreviewing?: boolean;
 }
 
@@ -108,15 +93,12 @@ interface IHistory {
 export const defaultState: IState = {
   defaultChartScaleRatio: 1,
   chartScaleRatio: 1,
-  voiceAwake: false,
   selectMarksStep: [], //
-  // loading: { isLoading: false },
+  selectMarksStepFake: [],
   showVideo: false,
   isMouseMoving: false,
-  // charts: [],
   marksToConfirm: [],
   spec: { charts: [], animations: [] },
-  // systemTouch: false,
   selectionOrder: { type: RANDOM_ORDER, correspondSelection: [] },
   kfZoomLevel: 1,
 };
@@ -148,15 +130,6 @@ class Store {
   });
 
   constructor(reducer: any) {
-    // Object.keys(defaultState).forEach((key: string) => {
-    //     Object.defineProperty(this.state, key, {
-    //         writable: false,
-    //         value: defaultState[key as keyof IState]
-    //     });
-    // })
-    // console.log('testing!!!!');
-    // this.state.selection.push('mark1');
-    // console.log('testing result!!!', this.state);
 
     this.history = {
       currentStateIdx: -1, //always correspond to the current state (current view)
@@ -213,7 +186,6 @@ class Store {
           document.getElementById(markId).setAttribute("opacity", "0.3");
         });
       });
-      // renderer.renderKeyframeTracks();
     }, 0);
   }
 
@@ -251,7 +223,6 @@ class Store {
           document.getElementById(markId).setAttribute("opacity", "0.3");
         });
       });
-      // renderer.renderKeyframeTracks();
     }, 0);
   }
 
@@ -321,17 +292,7 @@ class Store {
       console.trace("dispatching system action: ", action);
       const newState: IState = this.reducer(this.state, action);
       this.renderState(newState);
-      // this.saveState(true);
     } else {
-      // const targetState =
-      //   this.history.historyStates[this.history.currentStateIdx];
-      // for (let [className, cls] of this.additionalStaticMapping) {
-      //   const statics = targetState[className];
-      //   Object.entries<any>(statics).forEach(([k, v]) => {
-      //     (cls as any)[k] = jsTool.deepClone(v, false, true);
-      //   });
-      // }
-      // force unchange anything
     }
   }
   public renderState(targetState: IState) {
@@ -346,7 +307,6 @@ class Store {
     } else {
       diffState = jsTool.diff(this.state, targetState, 0);
     }
-    // const diffState: any = jsTool.diff(this.state, targetState);
     console.log("diff state: ", this.state, targetState, diffState);
     this.state = targetState;
     Object.keys(diffState).forEach((key: string) => {
@@ -366,28 +326,25 @@ class Store {
   }
 
   public subscribeAttrs() {
-    // this.subscribe(LOADING, renderer.toggleLoading);
-    // this.subscribe(CHART_SCALE_RATIO, renderer.scaleChartContent);
     this.subscribe(SHOW_VIDEO, renderer.toggleVideoMode);
-    // this.subscribe(VOICE_AWAKE, renderer.toggleVoice);
     this.subscribe(SELECTION, renderer.renderSelectionFrame);
     this.subscribe(SELECT_MARKS, renderer.renderSelectMarks);
-    // this.subscribe(MARKS_TO_CONFIRM, renderer.renderMarksToConfirm);
     this.subscribe(SPEC, renderer.renderSpec);
     this.subscribe(SORT_DATA_ATTRS, renderer.renderDataMenu);
-    // this.subscribe(SYSTEM_TOUCH, renderer.toggleSystemTouch);
     this.subscribe(LOTTIE_SPEC, renderer.updateLottieSpec);
-    // this.subscribe(STATIC_MARKS, renderer.renderStaticKf);
     this.subscribe(KEYFRAME_GROUPS, renderer.renderKeyframeTracks);
     this.subscribe(ACTIVATE_PLUS_BTN, renderer.renderActivatedPlusBtn);
     this.subscribe(HIGHLIGHT_KF, renderer.renderHighlightKf);
     this.subscribe(KF_ZOOM_LEVEL, renderer.zoomKfContainer);
     this.subscribe(KF_GROUP_SIZE, renderer.renderKfContainerSliders);
-    // this.subscribe(SKETCHING, renderer.renderSketchCanvas);
     this.subscribe(IS_PREVIEWING, renderer.renderSuggestSpec);
     this.subscribe(SUGGESTED_MARKS, renderer.renderSuggestedMarks);
     this.subscribe(SUGGEST_SPECS, renderer.renderPreviewBtns);
     this.subscribe(SELECT_MARKS_STEP, renderer.renderSelectionStep);
+    this.subscribe(SELECTION_FAKE, renderer.renderSelectionStep);
+    this.subscribe(SELECT_MARKS_FAKE, renderer.renderSelectionStep);
+    this.subscribe(SELECT_MARKS_STEP_FAKE, renderer.renderSelectionStep);
+
   }
 }
 

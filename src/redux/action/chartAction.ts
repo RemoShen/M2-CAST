@@ -46,6 +46,17 @@ export const updateSelection = (mIds: string[]) => {
   } as IAction;
 };
 
+export const UPDATE_SELECTION_FAKE: string = "UPDATE_SELECTION_REAL";
+export const updateSelectionFake = (mIds: string[]) => {
+  mIds = [...new Set(mIds)];
+  return {
+    type: UPDATE_SELECTION_FAKE,
+    payload: {
+      array: mIds,
+    },
+  } as IAction;
+};
+
 export const UPDATE_SELECT_MARKS: string = "UPDATE_SELECT_MARKS";
 export const updateSelectMarks = (mIds: string[]) => {
   return {
@@ -58,8 +69,6 @@ export const updateSelectMarks = (mIds: string[]) => {
 
 export const UPDATE_SELECT_MARKS_STEP: string = "UPDATE_SELECT_MARKS_STEP";
 export const updateSelectMarksStep = (mIds: string[]) => {
-  // let allPreviousSelectedMark = store.getState().selectMarksStep;
-  // const refSelect: string[][] = combineSelectStep(mIds);
   return {
     type: UPDATE_SELECT_MARKS_STEP,
     payload: {
@@ -67,7 +76,15 @@ export const updateSelectMarksStep = (mIds: string[]) => {
     },
   } as IAction;
 };
-
+export const UPDATE_SELECT_MARKS_STEP_FAKE: string = "UPDATE_SELECT_MARKS_STEP_FAKE";
+export const updateSelectMarksStepFake = (mIds: string[]) => {
+  return {
+    type: UPDATE_SELECT_MARKS_STEP_FAKE,
+    payload: {
+      array: mIds,
+    },
+  } as IAction;
+};
 export const UPDATE_SUGGESTED_MARKS: string = "UPDATE_SUGGESTED_MARKS";
 export const updateSuggestedMarks = (sm: string[]) => {
   return {

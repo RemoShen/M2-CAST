@@ -53,5 +53,3 @@ export class Loading {
     this.allLoadings = [];
   }
 }
-
-// export let loadingBlock: Loading = new Loading();

@@ -226,18 +226,12 @@ export class Hint {
           break;
       }
       this.removeTimingHint();
-      // State.tmpStateBusket.push({
-      //     historyAction: { actionType: UPDATE_SPEC_ANIMATIONS, actionVal: JSON.stringify(store.) },
-      //     currentAction: { actionType: actionType, actionVal: actionInfo }
-      // })
-      // State.saveHistory();
       store.dispatch({
         type: UPDATE_SPEC_ANIMATIONS,
         payload: {
           infoObj: actionInfo,
         },
       });
-      // Reducer.triger(actionType, actionInfo);
     };
     this.textWrapper.appendChild(this.contentInput);
     this.container.appendChild(this.textWrapper);
@@ -276,13 +270,11 @@ export class Hint {
     const newW: number = Hint.CHAR_LEN * this.content.length + 2 * Hint.PADDING;
     const oriW: number = parseFloat(this.hintBg.getAttributeNS(null, "width"));
     const diffW: number = newW - oriW;
-    // this.hintBg.setAttributeNS(null, 'width', `${newW}`);
     this.container.setAttributeNS(
       null,
       "transform",
       `translate(${containerTrans.x + diffX}, ${containerTrans.y})`
     );
-    // this.pointer.setAttributeNS(null, 'transform', `translate(${newW / 2 - 6}, ${Hint.HINT_HEIGHT + 2 * Hint.PADDING})`);
   }
 
   public removeTimingHint() {

@@ -23,7 +23,6 @@ import {
 } from "../redux/views/menu/menu-consts";
 import { NAV_HEIGHT } from "../redux/views/nav/nav-consts";
 import {
-  updateMarksToConfirm,
   updateSelection,
   updateSelectionOrder,
   updateSelectMarksStep,
@@ -52,7 +51,7 @@ import {
   suggestBox,
   SuggestBox,
 } from "../redux/views/vl/suggestBox";
-import { createKf, findTargetAni } from "../redux/views/vl/vl-util";
+import { createKf, findTargetAni, ifComplete } from "../redux/views/vl/vl-util";
 import { tip } from "../redux/views/widgets/tip";
 import KfItem from "../redux/views/vl/kfItem";
 import { REMOVE_SPEC_GROUPING } from "../redux/action/canisAction";
@@ -138,14 +137,8 @@ export default class MarkSelection {
       confirmSuggestion = jsTool.inBoundary(bbox, posi);
     }
 
-    // if (isMark(target)) {
     //if touch the suggesting box
     if (suggesting && confirmSuggestion) {
-      toggleLoading({
-        isLoading: true,
-        targetEle: document.body,
-        content: Loading.SUGGESTING,
-      });
       store.getState().suggestedMarks.forEach((marksId) => {
         document.getElementById(marksId).setAttribute("opacity", "1");
       }); //setting opacity for those confirm suggested
@@ -161,18 +154,12 @@ export default class MarkSelection {
         }
       }, 100);
     } else if (suggesting && !confirmSuggestion) {
-      toggleLoading({
-        isLoading: true,
-        targetEle: document.body,
-        content: Loading.SUGGESTING,
-      });
       let tmpTime = 100;
       const doing = setInterval(() => {
         tmpTime -= 100;
         if (tmpTime === 0) {
           clearInterval(doing);
           markSelection.checking([store.getState().selection], true);
-          // store.dispatchSystem(updateSelectMarksStep([]));
         }
       }, 100);
     }
@@ -271,6 +258,79 @@ export default class MarkSelection {
    * 1. confirm mark selection
    * 2. confirm keyframe suggestion
    */
+  afterDrawing(marksToConfirm: string[][], dontSuggest = false) {
+    Array.from(document.getElementsByClassName(SUGGESTION_FRAME_CLS)).forEach(
+      (sf: HTMLElement) => {
+        sf.remove();
+      }
+    );
+    if (marksToConfirm[0].length > 0) {
+      //do mark suggestion
+      const suggestedAndSelected: string[] = [
+        ...new Set(Util.suggestSelection(store.getState().selection)),
+      ];
+      const suggested: string[] = jsTool.excludeArray(
+        suggestedAndSelected,
+        store.getState().selection
+      ); //mark suggest
+
+      const axis: string[] = [
+        "axis-label",
+        "Title",
+        "legend-text",
+        "legend-value",
+        "title",
+        "axis-tick",
+        "axis-domain",
+        "legend-symbol",
+      ];
+
+      if (suggested.length > 0 && !dontSuggest) {
+        store.dispatchSystem(updateSuggestedMarks(suggested));
+      } else {
+        //auto competition
+        store.dispatchSystem(updateSuggestedMarks([]));
+
+        let keylist: string = "";
+        store.getState().selectMarks.forEach((key, value) => {
+          keylist = value;
+        }); //current select
+
+        const suggestContain: boolean = jsTool.suggestContain(Suggest.allPaths);
+        console.log("allpaths", Suggest.allPaths);
+        const validPath = marksToConfirm[0].every((mid) =>
+          Suggest.allPaths.find((path) => path.lastKfMarks.includes(mid))
+        );
+
+        if (
+          Suggest.allPaths.length > 0 &&
+          !suggestContain &&
+          validPath
+        ) {
+          for (let i = 0; i < suggestBox.options.length; i++) {
+            if (
+              jsTool.identicalArrays(
+                suggestBox.options[i].marksThisOption,
+                marksToConfirm[0]
+              )
+            ) {
+              suggestBox.currentSelection = i;
+              setTimeout(() => {
+                suggestBox.options[i].clickItem();
+              }, 10);
+              break;
+            }
+          }
+        } else {
+          createKf([]);
+        }
+      }
+    } else {
+      if (dontSuggest === false) {
+        tip.show("No mark selected.");
+      }
+    }
+  }
   checking(marksToConfirm: string[][], dontSuggest = false) {
     if (!store.getState().previewSpec) {
       //confirming mark selection
@@ -283,15 +343,6 @@ export default class MarkSelection {
         //noMulti Select
         if (marksToConfirm[0].length > 0) {
           store.dispatch(updateSelection(marksToConfirm[0]));
-          //do mark suggestion
-          const suggestedAndSelected: string[] = [
-            ...new Set(Util.suggestSelection(store.getState().selection)),
-          ];
-          const suggested: string[] = jsTool.excludeArray(
-            suggestedAndSelected,
-            store.getState().selection
-          ); //mark suggest
-
           const axis: string[] = [
             "axis-label",
             "Title",
@@ -302,116 +353,61 @@ export default class MarkSelection {
             "axis-domain",
             "legend-symbol",
           ];
-          if (suggested.length > 0 && !dontSuggest) {
-            toggleLoading({
-              isLoading: false,
-            });
-            store.dispatchSystem(updateSuggestedMarks(suggested));
-          } else {
-            //auto competition
-            store.dispatchSystem(updateSuggestedMarks([]));
-            const selectMarksValue: { dataMarks: string[]; nonDataMarks: string[] } =
-            Util.separateDataAndNonDataMarks(store.getState().selection);
-            if(selectMarksValue.dataMarks.length > 0){
-              store.dispatchSystem(
-                updateSelectMarksStep(selectMarksValue.dataMarks)
-              );
-            }
-
-
-            let keylist: string = "";
-            store.getState().selectMarks.forEach((key, value) => {
-              keylist = value;
-            }); //current select
-
-            const suggestContain: boolean = jsTool.suggestContain(
-              Suggest.allPaths
+          //auto competition
+          const selectMarksValue: {
+            dataMarks: string[];
+            nonDataMarks: string[];
+          } = Util.separateDataAndNonDataMarks(store.getState().selection);
+          if (selectMarksValue.dataMarks.length > 0) {
+            store.dispatchSystem(
+              updateSelectMarksStep(selectMarksValue.dataMarks)
             );
-            console.log("allpaths", Suggest.allPaths);
-            const validPath = marksToConfirm[0].every((mid) =>
-              Suggest.allPaths.find((path) => path.lastKfMarks.includes(mid))
-            );
+          }
 
-            if (
-              Suggest.allPaths.length > 0 &&
-              // axis.indexOf(keylist) == -1 &&
-              !suggestContain &&
-              validPath
-            ) {
-              for (let i = 0; i < suggestBox.options.length; i++) {
-                if (
-                  jsTool.identicalArrays(
-                    suggestBox.options[i].marksThisOption,
-                    marksToConfirm[0]
-                  )
-                ) {
-                  suggestBox.currentSelection = i;
-                  setTimeout(() => {
-                    suggestBox.options[i].clickItem();
-                  }, 10);
-                  break;
-                } else {
-                  // createKf([])
-                  toggleLoading({
-                    isLoading: false,
-                  });
-                }
+          let keylist: string = "";
+          store.getState().selectMarks.forEach((key, value) => {
+            keylist = value;
+          }); //current select
+
+          const suggestContain: boolean = jsTool.suggestContain(
+            Suggest.allPaths
+          );
+          console.log("allpaths", Suggest.allPaths);
+          const validPath = marksToConfirm[0].every((mid) =>
+            Suggest.allPaths.find((path) => path.lastKfMarks.includes(mid))
+          );
+
+          if (
+            Suggest.allPaths.length > 0 &&
+            !suggestContain &&
+            validPath
+          ) {
+            for (let i = 0; i < suggestBox.options.length; i++) {
+              if (
+                jsTool.identicalArrays(
+                  suggestBox.options[i].marksThisOption,
+                  marksToConfirm[0]
+                )
+              ) {
+                suggestBox.currentSelection = i;
+                setTimeout(() => {
+                  suggestBox.options[i].clickItem();
+                }, 10);
+                break;
               }
-            } else {
-              createKf([]);
             }
+          } else {
+            createKf([]);
           }
         } else {
           if (dontSuggest === false) {
             tip.show("No mark selected.");
-            toggleLoading({
-              isLoading: false,
-            });
           }
         }
-      } else if (marksToConfirm.length > 1) {
-        //Multi Select
-        //confirm mark selection (multi kfs)
-        const previousKfs: string[][] = [...marksToConfirm];
-        // Reducer.saveAndTriger(action.UPDATE_SELECTION, state.selection, state.marksToConfirm[0]);
-        store.dispatch(updateSelection(marksToConfirm[0]));
-        createKf(previousKfs);
-      }
-    } else if (store.getState().previewSpec) {
-      //confirming keyframe suggestion
-      if (KfGroup.groupToInsert !== "") {
-        Suggest.filterPathsWithSelection(
-          SuggestBox.currentUniqueIdx,
-          store.getState().previewPath.kfMarks[SuggestBox.currentUniqueIdx]
-        );
-        let currentSelectedMarksEachStep: Map<number, string[]> =
-          typeof store.getState().activatePlusBtn.selectedMarksEachStep ===
-          "undefined"
-            ? new Map()
-            : new Map(store.getState().activatePlusBtn.selectedMarksEachStep);
-        const currentActionInfo: IActivatePlusBtn = {
-          aniId: store.getState().activatePlusBtn.aniId,
-          selection: store.getState().activatePlusBtn.selection,
-          selectedMarksEachStep: currentSelectedMarksEachStep.set(
-            SuggestBox.currentUniqueIdx,
-            store.getState().previewPath.kfMarks[SuggestBox.currentUniqueIdx]
-          ),
-          renderedUniqueIdx: SuggestBox.currentUniqueIdx,
-          orderInfo: { type: RANDOM_ORDER, correspondSelection: [] },
-          previousKfs: [],
-        };
-        store.dispatch(updateActivatePlusBtn(currentActionInfo));
-        store.dispatchSystem(
-          updatePreviewing(null, null, false, Suggest.allPaths.length !== 1)
-        );
       }
     }
-    // marksToConfirm[0].forEach((mark) => {
-    //     document.getElementById(mark).style.opacity = '0.3';
-    // })
     store.getState().selectMarks?.forEach((value, key) => {
       value.forEach((markId) => {
-        // document.getElementById(markId).style.opacity = "0.3";
         document.getElementById(markId).setAttribute("opacity", "0.3");
       });
     });

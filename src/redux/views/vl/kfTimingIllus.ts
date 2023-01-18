@@ -9,7 +9,6 @@ import { TIMING_DURATION, TIMING_OFFSET } from "./vl-consts";
 import { NON_SKETCH_CLS } from "../../global-consts";
 import { ICoord } from "../../global-interfaces";
 import { store } from "../../store";
-import { toggleVoice } from "../../action/voiceAction";
 import { NUMERIC_SLIDER } from "../slider/slider-consts";
 import { transNodeElements } from "../../../util/tool";
 import { createSvgElement } from "../../../util/svgManager";
@@ -21,8 +20,6 @@ import {
   UPDATE_DELAY_BETWEEN_KF,
 } from "../../action/canisAction";
 import { toggleSystemTouch } from "../panels/interactions";
-import Slider from "../slider/slider";
-import { consoleMode } from "../../../mil/utils/util";
 
 export default class KfTimingIllus {
   static SCALE_DOWN: string = "scaleDown";
@@ -201,14 +198,10 @@ export default class KfTimingIllus {
         this.offsetType += "-kf";
       }
     }
-    // this.stretchBar = this.createStretchBar(widgetHeight, offsetType, false, actionInfo);
-    // this.offsetIllus.appendChild(this.stretchBar);
-    // this.bindOffsetHover(offsetType, actionInfo.groupRef);
   }
 
   public updateOffset(widgetHeight: number): void {
     this.offsetBg.setAttributeNS(null, "height", `${widgetHeight}`);
-    // this.stretchBar.setAttributeNS(null, 'height', `${widgetHeight}`);
     if (typeof this.offsetIcon !== "undefined") {
       this.offsetIcon.setAttributeNS(
         null,
@@ -217,30 +210,6 @@ export default class KfTimingIllus {
       );
     }
   }
-
-  // public bindDurationHover() {
-  //     this.durationIllus.onmouseenter = (enterEvt) => {
-  //         if (!state.mousemoving && !this.mouseIsOver) {
-  //             hintTag.removeTimingHint();
-  //             const timingBBox: DOMRect = this.durationBg.getBoundingClientRect();//fixed
-  //             hintTag.createTimingHint({ x: timingBBox.left + timingBBox.width / 2, y: timingBBox.top }, `duration:${this.durationNum}ms`, action.UPDATE_DURATION, { aniId: this.aniId });
-  //         }
-  //         this.mouseIsOver = true;
-  //     }
-  //     this.durationIllus.onmouseleave = (leaveEvt: any) => {
-  //         if (typeof hintTag.container !== 'undefined') {
-  //             if (!hintTag.container.contains(leaveEvt.toElement)) {
-  //                 hintTag.removeTimingHint();
-  //             }
-  //         }
-  //         this.mouseIsOver = false;
-  //     }
-  // }
-
-  // public unbindDurationHover() {
-  //     this.durationIllus.onmouseenter = null;
-  //     this.durationIllus.onmouseleave = null;
-  // }
 
   public drawDuration(
     duration: number,
@@ -292,14 +261,6 @@ export default class KfTimingIllus {
       );
       this.durationIllus.appendChild(this.durationIcon);
     }
-
-    // this.createTimeText({ x: this.durationWidth / 2 - 6, y: widgetHeight / 2 - 26 });
-    // this.durationIllus.appendChild(this.textWrapper);
-
-    // this.stretchBar = this.createStretchBar(widgetHeight, 'duration', hiddenDuration);
-    // this.durationIllus.appendChild(this.stretchBar);
-
-    // this.bindDurationHover();
     this.bindDurationPointerEvt();
   }
 
@@ -377,8 +338,6 @@ export default class KfTimingIllus {
       if (that instanceof KfItem) {
         store.dispatch(updateHighlightKf(that));
       }
-      // Reducer.triger(action.VOICE_AWAKE, true);
-      // store.dispatchSystem(toggleVoice(true));
 
       sliderBubble = new SliderBubble(
         this.durationBg,
@@ -403,8 +362,6 @@ export default class KfTimingIllus {
       toggleSystemTouch(true);
     });
     this.durationIllus.addEventListener("pointerup", (e: PointerEvent) => {
-      // Reducer.triger(action.VOICE_AWAKE, false);
-      // store.dispatchSystem(toggleVoice(false));
       sliderBubble.removeBubble();
       this.unbindDocumentPointerSlide();
       callSysMenu.set({ enable: true });
@@ -482,165 +439,6 @@ export default class KfTimingIllus {
   }
   public bindHoverBtn() {}
   public unbindHoverBtn() {}
-
-  // public hideArrow() {
-  //     switch (this.timingType) {
-  //         case KfTimingIllus.TIMING_TYPE_OFFSET:
-  //             if (typeof this.offsetIcon !== 'undefined') {
-  //                 this.offsetIcon.setAttributeNS(null, 'opacity', '0');
-  //             }
-  //             break;
-  //         case KfTimingIllus.TIMING_TYPE_DURATION:
-  //             if (typeof this.durationIcon !== 'undefined') {
-  //                 this.durationIcon.setAttributeNS(null, 'opacity', '0');
-  //             }
-  //             break;
-  //     }
-  // }
-
-  // public showArrow() {
-  //     switch (this.timingType) {
-  //         case KfTimingIllus.TIMING_TYPE_OFFSET:
-  //             if (typeof this.offsetIcon !== 'undefined') {
-  //                 this.offsetIcon.setAttributeNS(null, 'opacity', '1');
-  //             }
-  //             break;
-  //         case KfTimingIllus.TIMING_TYPE_DURATION:
-  //             if (typeof this.durationIcon !== 'undefined') {
-  //                 this.durationIcon.setAttributeNS(null, 'opacity', '1');
-  //             }
-  //             break;
-  //     }
-  // }
-
-  // public createStretchBar(barHeight: number, type: string, hiddenDuration: boolean, actionInfo: any = {}): SVGRectElement {
-  //     //create stretchable bar
-  //     const stretchBar: SVGRectElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  //     stretchBar.setAttributeNS(null, 'x', type === 'duration' ? `${this.durationWidth - 4}` : `${this.offsetWidth - 4}`);
-  //     stretchBar.setAttributeNS(null, 'y', hiddenDuration ? `${-KfTimingIllus.EXTRA_HEIGHT}` : '0');
-  //     stretchBar.setAttributeNS(null, 'width', '4');
-  //     stretchBar.setAttributeNS(null, 'height', hiddenDuration ? `${barHeight + KfTimingIllus.EXTRA_HEIGHT}` : `${barHeight}`);
-  //     stretchBar.setAttributeNS(null, 'fill', type === 'duration' ? KfTimingIllus.DURATION_STRETCH_COLOR : KfTimingIllus.OFFSET_STRETCH_COLOR);
-  //     stretchBar.classList.add('ease-fade', 'stretchable-component', 'fadein-ele');
-
-  //     stretchBar.onmousedown = (downEvt) => {
-  //         Reducer.triger(action.UPDATE_MOUSE_MOVING, true);
-  //         hintTag.removeHint();
-  //         this.startAdjustingTime();
-  //         this.removeEasingTransform();//eg: groupTitle
-  //         this.unbindHoverBtn();
-  //         this.hideArrow();//hide the arrow
-  //         const strectchBarBBox: DOMRect = stretchBar.getBoundingClientRect();//fixed
-  //         const timingBBox: DOMRect = type === 'duration' ? this.durationBg.getBoundingClientRect() : this.offsetBg.getBoundingClientRect();//fixed
-  //         const timingWidth: number = timingBBox.width;
-  //         let currentTiming: number = this.widthToTiming(timingWidth);
-  //         if (type === 'duration') {
-  //             hintTag.createTimingHint({ x: timingBBox.left + timingBBox.width / 2, y: strectchBarBBox.top }, `duration:${this.durationNum}ms`, action.UPDATE_DURATION, { aniId: this.aniId });
-  //             // this.unbindDurationHover();
-  //         } else {
-  //             let actionType: string = '';
-  //             let aInfo: any = {};
-  //             switch (type) {
-  //                 case 'offset-animation':
-  //                     actionType = action.UPDATE_ANI_OFFSET;
-  //                     aInfo = { aniId: this.aniId }
-  //                     break;
-  //                 case 'offset-group':
-  //                     actionType = action.UPDATE_DELAY_BETWEEN_GROUP;
-  //                     aInfo = { aniId: this.aniId, groupRef: actionInfo.groupRef }
-  //                     break;
-  //                 case 'offset-kf':
-  //                     actionType = action.UPDATE_DELAY_BETWEEN_KF;
-  //                     aInfo = { aniId: this.aniId }
-  //                     break;
-  //             }
-  //             hintTag.createTimingHint({ x: timingBBox.left + timingBBox.width / 2, y: strectchBarBBox.top }, `delay:${this.offsetNum}ms`, actionType, aInfo);
-  //             // this.unbindOffsetHover();
-  //             //remove the extra width of the offset
-  //             this.offsetBg.setAttributeNS(null, 'width', `${this.offsetWidth}`);
-  //         }
-  //         downEvt.stopPropagation();
-  //         let oriPosiX: number = downEvt.pageX;
-  //         document.onmousemove = (moveEvt) => {
-  //             moveEvt.stopPropagation();
-  //             const currentPosiX: number = moveEvt.pageX;
-  //             const diffX: number = (currentPosiX - oriPosiX) / store.getState().kfZoomLevel;
-  //             const barX: number = parseFloat(stretchBar.getAttributeNS(null, 'x'));
-
-  //             const timingWidth: number = type === 'duration' ? parseFloat(this.durationBg.getAttributeNS(null, 'width')) : parseFloat(this.offsetBg.getAttributeNS(null, 'width'));
-  //             if (timingWidth + diffX > 0) {
-  //                 if (type === 'duration') {
-  //                     currentTiming = this.widthToTiming(timingWidth + diffX);
-  //                     hintTag.updateTimingHint(diffX / 2, `duration:${currentTiming}ms`)
-  //                     this.durationBg.setAttributeNS(null, 'width', `${timingWidth + diffX}`);
-  //                     this.durationDiff = diffX;
-  //                 } else {
-  //                     currentTiming = this.widthToTiming(timingWidth + diffX);
-  //                     hintTag.updateTimingHint(diffX / 2, `delay:${currentTiming}ms`)
-  //                     this.offsetBg.setAttributeNS(null, 'width', `${timingWidth + diffX}`);
-  //                     //translate corresponding group or item
-  //                     this.offsetDiff = diffX;
-  //                 }
-  //                 stretchBar.setAttributeNS(null, 'x', `${diffX + barX}`);
-  //                 oriPosiX = currentPosiX;
-  //             }
-  //         }
-  //         document.onmouseup = () => {
-  //             Reducer.triger(action.UPDATE_MOUSE_MOVING, false);
-  //             hintTag.removeTimingHint();
-  //             document.onmousemove = null;
-  //             document.onmouseup = null;
-  //             this.addEasingTransform();
-  //             this.bindHoverBtn();
-  //             this.showArrow();//show the arrow
-  //             //triger action to update spec
-  //             if (type === 'duration') {
-  //                 // this.bindDurationHover();
-  //                 const durationTime: number = this.widthToTiming(parseFloat(this.durationBg.getAttributeNS(null, 'width')));
-  //                 State.tmpStateBusket.push({
-  //                     historyAction: { actionType: action.UPDATE_SPEC_ANIMATIONS, actionVal: JSON.stringify(state.spec.animations) },
-  //                     currentAction: { actionType: action.UPDATE_DURATION, actionVal: { aniId: this.aniId, duration: durationTime } }
-  //                 })
-  //                 State.saveHistory();
-  //                 Reducer.triger(action.UPDATE_DURATION, { aniId: this.aniId, duration: durationTime });
-  //             } else {
-  //                 // this.bindOffsetHover(type, actionInfo.groupRef);
-  //                 const delayTime: number = this.widthToTiming(parseFloat(this.offsetBg.getAttributeNS(null, 'width')));
-  //                 switch (type) {
-  //                     case 'offset-animation':
-  //                         State.tmpStateBusket.push({
-  //                             historyAction: { actionType: action.UPDATE_SPEC_ANIMATIONS, actionVal: JSON.stringify(state.spec.animations) },
-  //                             currentAction: { actionType: action.UPDATE_ANI_OFFSET, actionVal: { aniId: this.aniId, offset: delayTime } }
-  //                         })
-  //                         State.saveHistory();
-  //                         Reducer.triger(action.UPDATE_ANI_OFFSET, { aniId: this.aniId, offset: delayTime });
-  //                         break;
-  //                     case 'offset-group':
-  //                         State.tmpStateBusket.push({
-  //                             historyAction: { actionType: action.UPDATE_SPEC_ANIMATIONS, actionVal: JSON.stringify(state.spec.animations) },
-  //                             currentAction: { actionType: action.UPDATE_DELAY_BETWEEN_GROUP, actionVal: { aniId: this.aniId, groupRef: actionInfo.groupRef, delay: delayTime } }
-  //                         })
-  //                         State.saveHistory();
-  //                         Reducer.triger(action.UPDATE_DELAY_BETWEEN_GROUP, { aniId: this.aniId, groupRef: actionInfo.groupRef, delay: delayTime });
-  //                         break;
-  //                     case 'offset-kf':
-  //                         State.tmpStateBusket.push({
-  //                             historyAction: { actionType: action.UPDATE_SPEC_ANIMATIONS, actionVal: JSON.stringify(state.spec.animations) },
-  //                             currentAction: { actionType: action.UPDATE_DELAY_BETWEEN_KF, actionVal: { aniId: this.aniId, delay: delayTime } }
-  //                         })
-  //                         State.saveHistory();
-  //                         Reducer.triger(action.UPDATE_DELAY_BETWEEN_KF, { aniId: this.aniId, delay: delayTime });
-  //                         break;
-  //                 }
-  //             }
-  //         }
-  //     }
-  //     return stretchBar;
-  // }
-
-  // public widthToTiming(w: number): number {
-  //     return Tool.toFixed(KfTimingIllus.minDuration * 100 * w / KfTimingIllus.BASIC_OFFSET_DURATION_W, 2);
-  // }
 
   public drawArrowIcon(trans: ICoord, type: string): void {
     const iconPolygon: SVGPolygonElement = document.createElementNS(

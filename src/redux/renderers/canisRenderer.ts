@@ -17,17 +17,13 @@ import ViewWindow from "../views/panels/viewWindow";
 import { updateLottieSpec, updatePreviewing } from "../action/videoAction";
 
 export const canisRenderer = {
-  //need to subscribe
   renderSpec: async () => {
     const spec: ICanisSpec = store.getState().spec;
     if(spec.animations.length === 0) return;
     SuggestBox.reset();
-    //render video widgets first
-    //render video
     const lottieSpec = await canis.renderSpec(spec, () => {
       const stateSpec: ICanisSpec = store.getState().spec;
       if (spec.animations[0].selector === ".mark") {
-        //special triger, can not triger action
         stateSpec.animations[0].selector = `#${Animation.allMarks.join(", #")}`;
       }
       if (Util.nonDataTable.size <= 0) {
@@ -35,7 +31,6 @@ export const canisRenderer = {
         Util.extractNonDataAttrValue(ChartSpec.nonDataMarkDatum);
       }
 
-      // const dataOrder: string[] = Array.from(Util.filteredDataTable.keys());
       const dataTable: Map<string, IDataItem> = Util.filteredDataTable;
       const sortDataAttrs: ISortDataAttr[] = [
         "markId",
@@ -50,14 +45,12 @@ export const canisRenderer = {
           sort: sortType,
         };
       });
-      //these actions are coupling with others, so they are not recorded in history
       store.dispatchSystem(updateDataTable(dataTable));
       store.dispatchSystem(updateDataSort(sortDataAttrs));
     });
 
     const svg: HTMLElement = document.getElementById("visChart");
     if (svg) {
-      //translate chart content
       Util.transformSVG();
       Util.extractVisualEncoding();
 
@@ -87,10 +80,6 @@ export const canisRenderer = {
       svg.appendChild(suggestionBox);
       store.dispatchSystem(updateSelection([]));
       store.dispatchSystem(updatePreviewing(null, null, false, false));
-      // store.dispatch(updateChartScale(1));
-      // store.renderState(defaultState);
-      // store.saveState();
-      //TODO: reset state for new charts!!!!!
     }
     //render video view
 
@@ -101,6 +90,5 @@ export const canisRenderer = {
       totalTime: canis.duration(),
     });
     ViewWindow.resizeVideoLayer();
-    // callback();
   },
 };

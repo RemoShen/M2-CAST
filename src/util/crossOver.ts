@@ -12,9 +12,7 @@ export default class CrossOver {
       //update the appearance of marks
       const m: HTMLElement = document.getElementById(mId);
       if (framedMarks.includes(mId)) {
-        // m.classList.add('non-framed-mark');
       } else {
-        // m.classList.remove('non-framed-mark');
         result.push(mId);
       }
     });

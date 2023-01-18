@@ -45,10 +45,8 @@ import { CHART_THUMBNAIL_ZOOM_LEVEL } from "./vl-consts";
 import {
   REMOVE_DELAY_BETWEEN_KF,
   REMOVE_LOWESTGROUP,
-  updateEffectType,
   UPDATE_ALIGN_MERGE,
   UPDATE_DELAY_BETWEEN_KF,
-  UPDATE_EFFECT_AND_DURATION,
   UPDATE_KF_TIMING_REF,
   UPDATE_TIMING_REF_DELAY_KF,
 } from "../../action/canisAction";
@@ -186,27 +184,6 @@ export default class KfItem extends KfTimingIllus {
     }
   }
 
-  // /**
-  //  *
-  //  */
-  // public static recordZoomPosis(kfZoomLevel: number) {
-  //     // if (typeof this.allKfItems.get([...this.allKfItems.keys()][0]).zoomPosis.get(kfZoomLevel) === 'undefined') {
-  //     this.allKfItems.forEach((kf: KfItem, kfId: number) => {
-  //         const tmpTrans: ICoord = extractTransNums(kf.container.getAttributeNS(null, 'transform'));
-  //         this.allKfItems.get(kfId).zoomPosis.set(kfZoomLevel, {
-  //             posi: tmpTrans,
-  //             size: { w: 0, h: 0 }
-  //         });
-  //     })
-  //     // }
-  // }
-
-  // public static restoreZoomPosis(kfZoomLevel: number) {
-  //     this.allKfItems.forEach((kf: KfItem, kfId: number) => {
-  //         this.allKfItems.get(kfId).container.setAttributeNS(null, 'transform', `translate(${kf.zoomPosis.get(kfZoomLevel).posi.x} ${kf.zoomPosis.get(kfZoomLevel).posi.y})`);
-  //     })
-  // }
-
   public createOptionKfItem(
     allCurrentMarks: string[],
     allGroupMarks: string[],
@@ -317,32 +294,8 @@ export default class KfItem extends KfTimingIllus {
         }
       }
 
-      // store.getState().highlightKf.currentHighlightKf.kfInfo.allCurrentMarks.forEach((markId) => {
-      //     if(spec.animations.length > 1 && spec.animations[0].indexOf(markId)){
-
-      //     }else if(path.firstKfMarks.indexOf(markId) === -1){
-      //         pathSelect += '#' + markId + ', ';
-      //     }
-      // })
-      // store.getState().highlightKf.currentHighlightKf.kfInfo.marksThisKf.forEach((markId) => {
-      //     if(spec.animations.length > 1 && spec.animations[0].indexOf(markId)){
-
-      //     }else if(path.firstKfMarks.indexOf(markId) === -1){
-      //         pathSelect += '#' + markId + ', ';
-      //     }
-      // })
-      // if(pathSelect.length > 0){
-      // pathSelect = pathSelect.slice(0,-1);
-      // pathSelect = pathSelect.slice(0,-1);
-      // }
-      // if(spec.animations.length > 1){
-      //     spec.animations[1].selector = pathSelect;
-      // }else{
-      //     spec.animations[0].selector = pathSelect;
-      // }
       store.dispatchSystem(updatePreviewing(path, spec, true, true));
 
-      // KfItem.dragInfo = this.startDragKf(parseInt(e.target.getAttributeNS(null, 'kfId')));
     });
     this.container.addEventListener("pointerdown", (downEvt: PointerEvent) => {
       store.dispatch(updateHighlightKf(this));
@@ -357,31 +310,6 @@ export default class KfItem extends KfTimingIllus {
     });
   }
 
-  // public bindHoverBtn() {
-  //     this.container.onmouseenter = () => {
-  //         this.container.classList.add('drop-shadow-ele');
-  //         // this.hoverBtnContainer.setAttributeNS(null, 'opacity', '1');
-  //         // if (!state.mousemoving) {
-  //         //     if (typeof this.kfInfo.alignTo !== 'undefined') {//this kf is align to others
-  //         //         const aniGroup: KfGroup = this.parentObj.fetchAniGroup();
-  //         //         aniGroup.transShowTitle();
-  //         //     } else {
-  //         //         this.parentObj.transShowTitle();
-  //         //     }
-  //         // }
-  //     }
-  //     this.container.onmouseleave = () => {
-  //         this.container.classList.remove('drop-shadow-ele');
-  //         // this.hoverBtnContainer.setAttributeNS(null, 'opacity', '0');
-  //     }
-  // }
-
-  // public unbindHoverBtn() {
-  //     this.container.classList.remove('drop-shadow-ele');
-  //     this.hoverBtnContainer.setAttributeNS(null, 'opacity', '0');
-  //     this.container.onmouseenter = null;
-  //     this.container.onmouseleave = null;
-  // }
 
   public renderItem(startX: number, size?: ISize) {
     this.container = document.createElementNS(
@@ -390,7 +318,6 @@ export default class KfItem extends KfTimingIllus {
     );
     this.container.classList.add(NON_SKETCH_CLS);
     this.translateContainer(startX + KF_PADDING, KF_PADDING);
-    // this.bindHoverBtn();
 
     if (this.hasOffset) {
       this.drawOffset(this.kfInfo.delay, this.kfHeight, 0);
@@ -442,11 +369,9 @@ export default class KfItem extends KfTimingIllus {
     KfItem.allKfItems.set(this.id, this);
     if (typeof this.kfInfo.alignTo !== "undefined") {
       this.updateAlignPosi(this.kfInfo.alignTo);
-      // KfItem.allKfItems.set(this.id, this);
       //check whether there is already a line
       if (typeof IntelliRefLine.kfLineMapping.get(this.id) !== "undefined") {
         //already a line
-        // if (typeof IntelliRefLine.kfLineMapping.get(this.kfInfo.alignTo) !== 'undefined') {//already a line
         const refLineId: number = IntelliRefLine.kfLineMapping.get(
           this.kfInfo.alignTo
         ).lineId;
@@ -479,7 +404,6 @@ export default class KfItem extends KfTimingIllus {
         this.parentObj.alignLines.push(refLine.id);
       }
     } else {
-      // KfItem.allKfItems.set(this.id, this);
     }
 
     //whether to highlight this kf
@@ -496,11 +420,6 @@ export default class KfItem extends KfTimingIllus {
         store.dispatchSystem(updateHighlightKf(this));
       }
     }
-    // else if (store.getState().marksInNewCreateKFG.length > 0) {
-    //     if (jsTool.identicalArrays(this.kfInfo.allGroupMarks, store.getState().marksInNewCreateKFG)) {
-    //         store.dispatch(updateHighlightKf(this));
-    //     }
-    // }
     this.bindKfTap();
   }
 
@@ -580,13 +499,6 @@ export default class KfItem extends KfTimingIllus {
     this.offsetIllus.setAttributeNS(null, "opacity", "1");
   }
 
-  // public kfDragoverKf() {
-  //     this.kfBg.classList.add('dragover-kf');
-  // }
-
-  // public cancelKfDragoverKf() {
-  //     this.kfBg.classList.remove('dragover-kf');
-  // }
 
   public updateAlignPosi(alignTo: number) {
     //use bbox to compare position
@@ -626,7 +538,6 @@ export default class KfItem extends KfTimingIllus {
 
         if (currentPosiX > alignedKfBgX) {
           //translate aligned kf and its group
-          // if (currentPosiX > alignedKfBgX && (currentPosiX - alignedKfBgX >= 1)) { //translate aligned kf and its group
           let posiXForNextKf: number =
             this.container.getBoundingClientRect().right; //fixed
 
@@ -1001,12 +912,6 @@ export default class KfItem extends KfTimingIllus {
       x: (currentPosi.x - prePosi.x) / store.getState().kfZoomLevel,
       y: (currentPosi.y - prePosi.y) / store.getState().kfZoomLevel,
     };
-    // console.log('moveing kf: ', currentPosi, prePosi, posiDiff, KfItem.dragInfo.dragItem);
-
-    //check whether the kf is still inside its group
-    // let looseFocus: boolean = KfItem.dragInfo.dragItem.checkDragOutOfGroup(posiDiff);
-
-    // if (!looseFocus) {
     const oriTrans: ICoord = jsTool.extractTransNums(
       KfItem.dragInfo.dragItem.container.getAttributeNS(null, "transform")
     );
@@ -1485,7 +1390,7 @@ export default class KfItem extends KfTimingIllus {
                 ? m.getAttributeNS(null, "opacity")
                 : "1"
             );
-            m.setAttributeNS(null, "opacity", "0.4");
+            m.setAttributeNS(null, "opacity", "0.3");
             m.classList.add("translucent-mark");
           } else if (marksThisKf.includes(m.id)) {
             m.setAttributeNS(
@@ -1556,11 +1461,6 @@ export default class KfItem extends KfTimingIllus {
       "viewBox",
       `${chartL} ${chartT} ${chartW} ${chartH}`
     );
-    // thumbNailChartContent.setAttributeNS(
-    //   null,
-    //   "transform",
-    //   `scale(${store.getState().chartScaleRatio})`
-    // );
     thumbNailSvg = this.removeHghlights(thumbNailSvg);
     const shownThumbnail: number = Math.floor(
       (store.getState().kfZoomLevel - MIN_ZOOM_LEVEL) /

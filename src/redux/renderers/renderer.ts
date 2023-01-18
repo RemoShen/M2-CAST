@@ -1,7 +1,6 @@
 import { appRenderer } from "./appRenderer";
 import { canisRenderer } from "./canisRenderer";
 import { chartRenderer } from "./chartRenderer";
-import { voiceRenderer } from "./voiceRenderer";
 import { videoRenderer } from "./videoRenderer";
 import { vlRenderer } from "./vlRenderer";
 
@@ -15,7 +14,6 @@ const combineRenderers = (renderers: { [key: string]: any }) => {
 
 export const renderer = combineRenderers({
   app: appRenderer,
-  // voice: voiceRenderer, //语音交互的更新
   chart: chartRenderer,
   canis: canisRenderer,
   vl: vlRenderer,

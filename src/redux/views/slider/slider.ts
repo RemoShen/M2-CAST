@@ -314,8 +314,6 @@ export default class Slider {
   }
 
   public sliderDown(downX: number) {
-    // Reducer.triger(action.UPDATE_MOUSE_MOVING, true);
-    // store.dispatch(updateMouseMoving(true));
     this.preX = downX;
     document.addEventListener("pointermove", (moveEvt: PointerEvent) => {
       this.sliderMove(moveEvt.pageX);
@@ -338,24 +336,18 @@ export default class Slider {
       oriSliderX + diffX >= this.sliderMargin
     ) {
       if (this.options.sliderType === NUMERIC_SLIDER) {
-        // this.slider.setAttributeNS(null, 'cx', `${currentSliderX + diffX}`);
-        // this.trackPassed.setAttributeNS(null, 'x2', `${currentSliderX + diffX}`);
         currentSliderX = oriSliderX + diffX;
         this.preX = currentX;
       } else if (this.options.sliderType === CATEGORY_SLIDER) {
         const step: number =
           this.containerWidth / (this.options.domain.length - 1);
         const idx: number = Math.round((currentX - this.preX) / step);
-        // this.slider.setAttributeNS(null, 'cx', `${currentSliderX + idx * step}`);
-        // this.trackPassed.setAttributeNS(null, 'x2', `${currentSliderX + idx * step}`);
         currentSliderX = oriSliderX + idx * step;
         if (Math.abs(idx) === 1) {
           this.preX += idx * step;
         }
       }
     } else if (oriSliderX + diffX > this.containerWidth + this.sliderMargin) {
-      // this.slider.setAttributeNS(null, 'cx', `${this.containerWidth + this.sliderMargin}`);
-      // this.trackPassed.setAttributeNS(null, 'x2', `${currentSliderX + diffX}`);
       currentSliderX = this.containerWidth + this.sliderMargin;
     } else if (oriSliderX + diffX < this.sliderMargin) {
       currentSliderX = this.sliderMargin;
@@ -367,8 +359,6 @@ export default class Slider {
   }
 
   public sliderUp() {
-    // Reducer.triger(action.UPDATE_MOUSE_MOVING, false);
-    // store.dispatch(updateMouseMoving(false));
     const currentSliderX: number = parseFloat(
       this.slider.getAttributeNS(null, "cx")
     );
@@ -382,8 +372,6 @@ export default class Slider {
 
   public moveSlider(value: number): void {
     this.currentValue = value;
-    // this.slider.setAttributeNS(null, 'cx', this.scale(value).toString());
-    // this.trackPassed.setAttributeNS(null, 'x2', this.scale(value).toString());
     if (this.callbackFunc && typeof this.callbackFunc !== "undefined") {
       this.callbackFunc(value);
     }

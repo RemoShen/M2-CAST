@@ -27,17 +27,6 @@ import { ICoord } from "../../global-interfaces";
 import { store } from "../../store";
 import { toggleLoading } from "../../renderers/renderer-tools";
 import { jsTool } from "../../../util/jsTool";
-import { INIT, initState, updateLoading, updateSketching } from "../../action/appAction";
-import { state } from "../../../app/state";
-import {
-  updateCharts,
-  updateSelection,
-  updateSelectionOrder,
-} from "../../action/chartAction";
-import { stackOrderAscending } from "d3";
-import { updateSpecAnimations } from "../../action/canisAction";
-import { updateLottieAni, updateLottieSpec } from "../../action/videoAction";
-import { updateKfGroupSize, updateKfTracks } from "../../action/vlAction";
 
 class SystemMenu {
   menu: CircularMenu;
@@ -344,16 +333,6 @@ class SystemMenu {
   }
 
   reset(): void {
-    //重新
-    // store.dispatch(updateCharts([]));
-    // store.dispatch(updateSelection([]));
-    // store.dispatch(updateSelectionOrder(null));
-    // store.dispatch(updateSpecAnimations([]));
-    // store.dispatch(updateLottieSpec());
-    // store.dispatch(updateLottieAni(null));
-    // store.dispatch(updateKfTracks(null));
-    // store.dispatch(updateKfGroupSize(null));
-    // store.dispatchSystem(updateLoading)
     location.reload();
   }
 }

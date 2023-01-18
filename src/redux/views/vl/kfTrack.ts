@@ -26,7 +26,6 @@ export default class KfTrack {
   public splitLineTop: SVGLineElement;
   public splitLineBottom: SVGLineElement;
   public availableInsert: number = KF_PADDING;
-  // public availableInsert: number = KfItem.KF_WIDTH + KfItem.PADDING;
   public children: KfGroup[] = [];
 
   public static reset() {

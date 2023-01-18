@@ -8,23 +8,17 @@ import {
   IKeyframeGroup,
   ICoord,
 } from "../../global-interfaces";
-import { clearDragOver } from "../../../util/tool";
 import { createSvgElement, updateProps } from "../../../util/svgManager";
 import { jsTool } from "../../../util/jsTool";
-import { toggleVoice } from "../../action/voiceAction";
 import { store } from "../../store";
 import {
   ISVGBtn,
   CIRCLE_BTN,
-  PNT_DOWN_SIZE,
-  BTN_CONTENT_TYPE_ICON,
-  VOICE_ICON,
   BTN_CONTENT_TYPE_STR,
 } from "../buttons/button-consts";
 import { SVGBtn } from "../buttons/svgButton";
 import { LIGHT_COLOR, DARK_COLOR } from "../menu/menu-consts";
 import {
-  updateActivatePlusBtn,
   updateHighlightKf,
 } from "../../action/vlAction";
 
@@ -64,40 +58,6 @@ export default class PlusBtn {
     return this._isHighlighted;
   }
 
-  // public static findPlusBtn(selectedCls: string[]) {
-  //     for (let i = 0, len = this.allPlusBtn.length; i < len; i++) {
-  //         const pb: PlusBtn = this.allPlusBtn[i];
-  //         if (jsTool.arrayContained(pb.acceptableCls, selectedCls) && pb.onShow) {
-  //             this.dragoverBtn = pb;
-  //             break;
-  //         }
-  //     }
-  // }
-
-  // public static highlightPlusBtns(selectedCls: string[]): void {
-  //     //filter which button to highlight (has the same accepatable classes)
-  //     this.allPlusBtn.forEach((pb: PlusBtn) => {
-  //         if (jsTool.arrayContained(pb.acceptableCls, selectedCls) && pb.onShow) {
-  //             pb.isHighlighted = true;
-  //             let transX: number = pb.kfSize.width - this.BTN_SIZE;
-  //             // pb.targetKfg.translateWholeGroup(transX, true);
-  //             const firstKf: KfItem = pb.targetKfg.fetchFirstKf();
-  //             pb.targetKfg.translateGroup(firstKf, transX, true, true, true);
-  //         }
-  //     })
-  // }
-
-  // public static cancelHighlightPlusBtns(): void {
-  //     this.allPlusBtn.forEach((pb: PlusBtn) => {
-  //         if (pb.isHighlighted && pb.onShow) {
-  //             pb.cancelHighlightBtn();
-  //             let transX: number = pb.kfSize.width - this.BTN_SIZE;
-  //             // pb.targetKfg.translateWholeGroup(-transX, true);
-  //             const firstKf: KfItem = pb.targetKfg.fetchFirstKf();
-  //             pb.targetKfg.translateGroup(firstKf, -transX, true, true, true);
-  //         }
-  //     })
-  // }
 
   public static detectAdding(
     kfg: IKeyframeGroup,
@@ -353,43 +313,4 @@ export default class PlusBtn {
       true
     );
   }
-
-  // public dragSelOver(): void {
-  //     this.btnBg.setAttributeNS(null, 'stroke', `${PlusBtn.BTN_DRAGOVER_COLOR}`);
-  //     this.btnIcon.setAttributeNS(null, 'fill', `${PlusBtn.BTN_DRAGOVER_COLOR}`);
-  //     clearDragOver();
-  //     PlusBtn.dragoverBtn = this;
-  // }
-
-  // public dragSelOut(): void {
-  //     this.btnBg.setAttributeNS(null, 'stroke', `${PlusBtn.BTN_HIGHLIGHT_COLOR}`);
-  //     this.btnIcon.setAttributeNS(null, 'fill', `${PlusBtn.BTN_HIGHLIGHT_COLOR}`);
-  //     PlusBtn.dragoverBtn = undefined;
-  // }
-
-  // public dropSelOn(): void {
-  //     const selectedMarks: string[] = state.activatePlusBtn.selection;
-  //     let firstKfInfoInParent: IKeyframe = this.firstKfArrInTargetKfg[0];
-  //     const tmpKfInfo: IKeyframe = KfItem.createKfInfo(selectedMarks,
-  //         {
-  //             duration: firstKfInfoInParent.duration,
-  //             allCurrentMarks: firstKfInfoInParent.allCurrentMarks,
-  //             allGroupMarks: firstKfInfoInParent.allGroupMarks
-  //         });
-  //     KfItem.allKfInfo.set(tmpKfInfo.id, tmpKfInfo);
-  //     const targetKfg: Kfgourp = KfGroup.allAniGroups.get(this.targetKfg.aniId).fetchFirstKfg();
-
-  //     //create a kf and replace the plus btn
-  //     this.removeBtn();
-  //     let tmpKf: KfItem = new KfItem();
-  //     tmpKf.createItem(tmpKfInfo, 1, targetKfg, KfGroup.PADDING);
-  //     tmpKf.idxInGroup = 0;
-  //     targetKfg.children.forEach((c: KfGroup | KfItem | KfOmit) => {
-  //         c.idxInGroup++;
-  //     })
-  //     targetKfg.children.unshift(tmpKf);
-
-  //     const suggestOnFirstKf: boolean = Suggest.generateSuggestionPath(selectedMarks, firstKfInfoInParent, this.targetKfg);
-  //     suggestBox.renderKfOnPathAndSuggestionBox(Suggest.allPaths, tmpKf, this.fakeKfg, suggestOnFirstKf);
-  // }
 }

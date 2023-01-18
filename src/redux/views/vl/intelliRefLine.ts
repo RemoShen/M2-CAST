@@ -146,8 +146,6 @@ export default class IntelliRefLine {
           showHintLine = false;
         }
       }
-      // if (typeof kfGroup.alignId !== 'undefined' && typeof aniGroup.alignTarget !== 'undefined') {
-      //     if (kfGroup.alignId !== aniGroup.alignTarget && kfGroup.id !== aniGroup.id) {
       if (showHintLine) {
         const firstKf: KfItem = aniGroup.fetchFirstKf();
         const aniGroupBBox: DOMRect = aniGroup.groupBg.getBoundingClientRect(); //fixed
@@ -168,7 +166,6 @@ export default class IntelliRefLine {
           true,
           false
         );
-        // tmpHintLine2.hintAlign({ x: aniGroupBBox.left, y: aniGroupBBox.top }, aniGroupBBox.height / store.getState().kfZoomLevel, false);
         hintLines.push(tmpHintLine2);
         const tmpHintLine3: IntelliRefLine = new IntelliRefLine();
         tmpHintLine3.hintAlign(

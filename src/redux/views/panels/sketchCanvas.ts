@@ -8,22 +8,21 @@ import {
   KF_VIEW_CONTENT_ID,
   LASSO,
 } from "./panel-consts";
-import { ICoord } from "../../global-interfaces";
+import { ICoord, IPath } from "../../global-interfaces";
 import { sketchRecognizer } from "../../../app/core/sketchRecognizer";
 import { store } from "../../store";
 import { toggleVideoMode } from "../../action/videoAction";
 import { isMark } from "../../../util/appTool";
 import { jsTool } from "../../../util/jsTool";
-import { update } from "lodash";
 import { updateEffectType } from "../../action/canisAction";
-import { updateSelection } from "../../action/chartAction";
-import Suggest from "../../../app/core/suggest";
-import { suggestBox } from "../vl/suggestBox";
-import { confirmBtn } from "./viewWindow";
 import Axis from "../../../util/axis";
-import { toggleLoading } from "../../renderers/renderer-tools";
-import { Loading } from "../widgets/loading";
 import Util from "../../../app/core/util";
+import {
+  updateSelectionFake,
+  updateSelectMarksStepFake,
+} from "../../action/chartAction";
+import { tip } from "../widgets/tip";
+import { tipSuggest } from "../vl/vl-util";
 
 export const TOUCH_NULL: number = 0;
 export const TOUCH_STRAIGHT: number = 1;
@@ -47,73 +46,23 @@ class SketchCanvas {
   isDown: boolean;
   width: number;
   height: number;
-  tracePoints: ICoord[][][]; //跟踪点的轨迹
-  tracePointsOneStroke: ICoord[]; //跟踪点连接
+  tracePoints: ICoord[][][];
+  tracePointsOneStroke: ICoord[];
   traceGrouping: number[][];
   pathInterval: NodeJS.Timeout;
   selectionInterval: NodeJS.Timeout;
-  // recordingPath = false;
-  // recognizeResult: { score: number, name: string }
-  // lassoSelection: Lasso
-  // crossOverSelection: CrossOver
   sketchResult: string[][];
-  // resultCache: Set<string>
   clearCache: boolean;
   sketchTarget: string;
-  // _touchType: number
-
-  // set touchType(t: number) {
-  //     this._touchType = t;
-  //     Reducer.triger(action.UPDATE_TOUCH_TYPE, t);
-  // }
-
-  // get touchType(): number {
-  //     return this._touchType;
-  // }
 
   constructor() {
     this.isDown = false;
     this.traceGrouping = [];
     this.tracePoints = [];
     this.tracePointsOneStroke = [];
-    // this.resultCache = new Set();
     this.clearCache = false;
-    // this.recordingPath = false;
-    // this.lassoSelection = new Lasso();
-    // this.crossOverSelection = new CrossOver();
     this.sketchTarget = "";
     this.sketching = false;
-    // this.initCanvas();
-
-    // const that = this;
-    // document.addEventListener('touchstart', (e: TouchEvent) => {
-    //     if (e.touches.length === 3 && e.targetTouches.length === 2) {
-    //         that.touchType = TOUCH_MULTI;
-    //     } else if (e.touches.length === 2 && e.targetTouches.length === 1) {
-    //         // that.touchType = TOUCH_STRAIGHT;
-    //     }
-    // });
-    // document.addEventListener('touchend', (e: TouchEvent) => {
-    //     if (that.touchType & TOUCH_MULTI && !state.sketching) {
-    //         createKf();
-    //     }
-    //     that.touchType = TOUCH_NULL;
-    // });
-
-    // //for test
-    // document.addEventListener('keydown', (e) => {
-    //     if (e.shiftKey) {//multi select
-    //         that.touchType = TOUCH_MULTI;
-    //     } else if (e.ctrlKey) {//straight line
-    //         // that.touchType = TOUCH_STRAIGHT;
-    //     }
-    // })
-    // document.addEventListener('keyup', (e) => {
-    //     if (that.touchType & TOUCH_MULTI && !state.sketching) {
-    //         createKf();
-    //     }
-    //     that.touchType = TOUCH_NULL;
-    // })
   }
 
   initCanvas() {
@@ -175,18 +124,8 @@ class SketchCanvas {
       SketchCanvas.LINE_WIDTH,
       SketchCanvas.LINE_WIDTH
     );
-    // if (!this.recordingPath) {
-    //     this.recordingPath = true;
-    //     //reset paras
-    //     this.tracePoints = [];
-    // } else {
-    //     clearInterval(this.pathInterval);
-    // }
-    // if (this.touchType === TOUCH_MULTI) {
-    // console.log('clear multi interval');
 
     clearInterval(this.selectionInterval);
-    // }
   }
 
   drawing(e: PointerEvent) {
@@ -197,31 +136,7 @@ class SketchCanvas {
       x -= 0 - window.scrollX;
       y -= 0 - window.scrollY;
 
-      //check modifier status
-      // if (state.touchType === TOUCH_STRAIGHT) {
-      //     if (state.straightModifier.startPnt.x === -1 && state.straightModifier.startPnt.y === -1) {
-      //         Reducer.triger(action.STRAIGHT_MODIFIER_START, this.tracePointsOneStroke[this.tracePointsOneStroke.length - 1]);
-      //     } else {
-      //         let direction: number = state.straightModifier.direction;
-      //         if (direction === -1) {//need to calculate direction
-      //             if (Math.abs(y - state.straightModifier.startPnt.y) / Math.abs(x - state.straightModifier.startPnt.x) < 1) {//x direction
-      //                 direction = 0;
-      //             } else {//y direction
-      //                 direction = 1;
-      //             }
-      //             Reducer.triger(action.STRAIGHT_MODIFIER_DIRECT, direction);
-      //         }
-      //         switch (direction) {
-      //             case 0:
-      //                 y = state.straightModifier.startPnt.y;
-      //                 break;
-      //             case 1:
-      //                 x = state.straightModifier.startPnt.x;
-      //                 break;
-      //         }
-      //     }
-      // }
-      this.tracePointsOneStroke.push({ x: x, y: y }); // append
+      this.tracePointsOneStroke.push({ x: x, y: y });
       this.drawConnectedPoint(
         this.tracePointsOneStroke[this.tracePointsOneStroke.length - 2],
         this.tracePointsOneStroke[this.tracePointsOneStroke.length - 1]
@@ -230,14 +145,6 @@ class SketchCanvas {
   }
 
   drawConnectedPoint(from: ICoord, to: ICoord): void {
-    // switch (state.touchType) {
-    //     case TOUCH_SINGLE:
-    //         this.ctx.strokeStyle = '#000';
-    //         break;
-    //     case TOUCH_MULTI:
-    //         this.ctx.strokeStyle = '#aaa';
-    //         break;
-    // }
     this.ctx.strokeStyle = "#000";
     this.ctx.beginPath();
     this.ctx.moveTo(from.x, from.y);
@@ -248,18 +155,6 @@ class SketchCanvas {
 
   recordTracePnts(pnts: ICoord[]): boolean {
     let combineFirst: boolean = false; //whether to add the first selection into state.selection
-    // switch (state.touchType) {
-    //     case TOUCH_SINGLE:
-    //         this.tracePoints.push([pnts]);
-    //         break;
-    //     case TOUCH_MULTI:
-    //         if (this.tracePoints.length === 0) {
-    //             this.tracePoints[0] = [];
-    //             combineFirst = true;
-    //         }
-    //         this.tracePoints[this.tracePoints.length - 1].push(pnts);
-    //         break;
-    // }
     if (this.tracePoints.length === 0) {
       this.tracePoints[0] = [];
       combineFirst = true;
@@ -267,75 +162,84 @@ class SketchCanvas {
     this.tracePoints[this.tracePoints.length - 1].push(pnts);
     return combineFirst;
   }
-  endDrawingBtn() {
-    // if (this.isDown) {
-    this.isDown = false;
-    const combineFirst: boolean = this.recordTracePnts(
-      this.tracePointsOneStroke
-    );
-    let tmpTime = SketchCanvas.TIME_DELIMITER;
-    const that = this;
-    const judgepoints = that.tracePoints[0];
-    const chartArea: DOMRect = document
-      .getElementById(CHART_VIEW_CONTENT_ID)
-      .getBoundingClientRect();
-    const judgePoints: ICoord[][] = [];
-    judgepoints.forEach((item) => {
-      if (item.length != 0) {
-        judgePoints.push(item);
-      }
-    });
-    if (confirmBtn === false && judgePoints.length != 0) {
-      toggleLoading({
-        isLoading: true,
-        targetEle: document.body,
-        content: Loading.EXPORTING,
-      });
-      this.selectionInterval = setInterval(() => {
-        tmpTime -= 100;
-        if (tmpTime === 0) {
-          this.hideCanvas();
-          clearInterval(that.selectionInterval);
-          that.sketchResult = [];
-          let hitCheck: boolean = false,
-            hitCancel: boolean = false;
-          //recog circle path
-          if (jsTool.inBoundary(chartArea, judgePoints[0][0])) {
-            //trace in chart view
-            for (let i = 0, len = that.tracePoints.length; i < len; i++) {
-              let tmpSelection: string[] = [];
-              for (let j = 0, len2 = judgePoints.length - 1; j < len2; j++) {
-                const tps: ICoord[] = judgePoints[j];
-                //recog paths
-                // const pathRecog: { name: string, score: number } = that.recognizePath(tps);
-
-                const choseByPath: { isL: boolean; selection: string[] } =
-                  that.chooseMarks(tps);
-                tmpSelection = [...tmpSelection, ...choseByPath.selection];
-              }
-              if (that.sketchResult.length === 0 && combineFirst) {
-                // that.sketchResult.push([...store.getState().selection, ...tmpSelection]);
-                that.sketchResult.push([...tmpSelection]);
-              } else {
-                that.sketchResult.push(tmpSelection);
-              }
-
-              if (hitCheck || hitCancel) {
-                break;
-              }
-            }
-            markSelection.checking(that.sketchResult);
+  endSketch() {
+    if (this.isDown) {
+      this.isDown = false;
+      const combineFirst: boolean = this.recordTracePnts(
+        this.tracePointsOneStroke
+      );
+      const that = this;
+      const judgePoints = that.tracePoints[0];
+      const chartArea: DOMRect = document
+        .getElementById(CHART_VIEW_CONTENT_ID)
+        .getBoundingClientRect();
+      this.hideCanvas();
+      that.sketchResult = [];
+      let hitCheck: boolean = false,
+        hitCancel: boolean = false;
+      //recog circle path
+      if (jsTool.inBoundary(chartArea, judgePoints[0][0])) {
+        //trace in chart view
+        for (let i = 0, len = that.tracePoints.length; i < len; i++) {
+          let tmpSelection: string[] = [];
+          for (let j = 0, len2 = that.tracePoints[i].length; j < len2; j++) {
+            const tps: ICoord[] = that.tracePoints[i][j];
+            //recog paths
+            const pathRecog: { name: string; score: number } =
+              that.recognizePath(tps); //path recog info
+            const choseByPath: { isL: boolean; selection: string[] } =
+              that.chooseMarks(tps);
+            tmpSelection = [...tmpSelection, ...choseByPath.selection];
           }
-          //clear strokes
-          that.tracePoints = [];
-          this.traceGrouping = [];
-          that.sketchResult = [];
-          that.clearCanvas();
+          if (that.sketchResult.length === 0 && combineFirst) {
+            that.sketchResult.push([...tmpSelection]);
+          } else {
+            that.sketchResult.push(tmpSelection);
+          }
+          if (hitCheck || hitCancel) {
+            break;
+          }
         }
-      }, 100);
-    }
+        if (that.sketchResult[0].length > 0) {
+          store.dispatch(updateSelectionFake(that.sketchResult[0]));
 
-    // }
+          const selectMarksValue: {
+            dataMarks: string[];
+            nonDataMarks: string[];
+          } = Util.separateDataAndNonDataMarks(store.getState().selectionfake);
+
+          if (selectMarksValue.dataMarks.length > 0) {
+            store.dispatchSystem(
+              updateSelectMarksStepFake(selectMarksValue.dataMarks)
+            );
+          }
+
+          store.getState().selectMarksfake?.forEach((value, key) => {
+            value.forEach((markId) => {
+              document.getElementById(markId).style.opacity = '0.3';
+            });
+          });
+
+          //if can suggest one frame? Then set opacity from 1 to 0.3
+          const suggestPath: IPath[] = tipSuggest([]);
+          if (suggestPath.length > 0) {
+            suggestPath[0].lastKfMarks.forEach((mark) => {
+              document.getElementById(mark).style.opacity = '0.3';
+            });
+          }
+        } else {
+          tip.show("No mark selected.");
+          setTimeout(() => {
+            tip.hide();
+          }, 1000);
+        }
+        // markSelection.afterDrawing(that.sketchResult)
+      }
+      that.tracePoints = [];
+      that.traceGrouping = [];
+      that.sketchResult = [];
+      that.clearCanvas();
+    }
   }
   endDrawing() {
     if (this.isDown) {
@@ -350,133 +254,125 @@ class SketchCanvas {
         .getElementById(CHART_VIEW_CONTENT_ID)
         .getBoundingClientRect();
       const effectSketchTypes = jsTool.judgeEffectTypes(that.tracePoints);
-      if (confirmBtn === false) {
-        toggleLoading({
-          isLoading: true,
-          targetEle: document.body,
-          content: Loading.SUGGESTING,
-        });
-        this.selectionInterval = setInterval(() => {
-          tmpTime -= 100;
-          if (tmpTime === 0) {
-            this.hideCanvas();
-            clearInterval(that.selectionInterval);
-            that.sketchResult = [];
-            let hitCheck: boolean = false,
-              hitCancel: boolean = false;
-            //recog circle path
-            if (jsTool.inBoundary(chartArea, judgePoints[0][0])) {
-              //trace in chart view
-              for (let i = 0, len = that.tracePoints.length; i < len; i++) {
-                let tmpSelection: string[] = [];
-                for (
-                  let j = 0, len2 = that.tracePoints[i].length;
-                  j < len2;
-                  j++
-                ) {
-                  const tps: ICoord[] = that.tracePoints[i][j];
-                  //recog paths
-                  const pathRecog: { name: string; score: number } =
-                    that.recognizePath(tps); //path recog info
-                  const choseByPath: { isL: boolean; selection: string[] } =
-                    that.chooseMarks(tps);
-                  tmpSelection = [...tmpSelection, ...choseByPath.selection];
-                }
-                if (that.sketchResult.length === 0 && combineFirst) {
-                  // that.sketchResult.push([...store.getState().selection, ...tmpSelection]);
-                  that.sketchResult.push([...tmpSelection]);
-                } else {
-                  that.sketchResult.push(tmpSelection);
-                }
-                if (hitCheck || hitCancel) {
-                  break;
-                }
+      this.selectionInterval = setInterval(() => {
+        tmpTime -= 100;
+        if (tmpTime === 0) {
+          this.hideCanvas();
+          clearInterval(that.selectionInterval);
+          that.sketchResult = [];
+          let hitCheck: boolean = false,
+            hitCancel: boolean = false;
+          //recog circle path
+          if (jsTool.inBoundary(chartArea, judgePoints[0][0])) {
+            //trace in chart view
+            for (let i = 0, len = that.tracePoints.length; i < len; i++) {
+              let tmpSelection: string[] = [];
+              for (
+                let j = 0, len2 = that.tracePoints[i].length;
+                j < len2;
+                j++
+              ) {
+                const tps: ICoord[] = that.tracePoints[i][j];
+                //recog paths
+                const pathRecog: { name: string; score: number } =
+                  that.recognizePath(tps); //path recog info
+                const choseByPath: { isL: boolean; selection: string[] } =
+                  that.chooseMarks(tps);
+                tmpSelection = [...tmpSelection, ...choseByPath.selection];
               }
-              markSelection.checking(that.sketchResult);
-            } else {
-              switch (effectSketchTypes) {
-                case "FADE":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "fade"
-                    )
-                  );
-                  break;
-                case "FADE OUT":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "fade out"
-                    )
-                  );
-                  break;
-                case "CIRCLE":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "circle"
-                    )
-                  );
-                  break;
-                case "GROW":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "grow"
-                    )
-                  );
-                  break;
-                case "WIPE TOP":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "wipe top"
-                    )
-                  );
-                  break;
-                case "WIPE BOTTOM":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "wipe bottom"
-                    )
-                  );
-                  break;
-                case "WIPE LEFT":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "wipe left"
-                    )
-                  );
-                  break;
-                case "WIPE RIGHT":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "wipe right"
-                    )
-                  );
-                  break;
-                case "WHEEL":
-                  store.dispatch(
-                    updateEffectType(
-                      [store.getState().highlightKf.currentHighlightKf.aniId],
-                      "wheel"
-                    )
-                  );
-                  break;
+              if (that.sketchResult.length === 0 && combineFirst) {
+                that.sketchResult.push([...tmpSelection]);
+              } else {
+                that.sketchResult.push(tmpSelection);
+              }
+              if (hitCheck || hitCancel) {
+                break;
               }
             }
-
-            that.tracePoints = [];
-            that.traceGrouping = [];
-            that.sketchResult = [];
-            that.clearCanvas();
+            markSelection.checking(that.sketchResult);
+          } else {
+            switch (effectSketchTypes) {
+              case "FADE":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "fade"
+                  )
+                );
+                break;
+              case "FADE OUT":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "fade out"
+                  )
+                );
+                break;
+              case "CIRCLE":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "circle"
+                  )
+                );
+                break;
+              case "GROW":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "grow"
+                  )
+                );
+                break;
+              case "WIPE TOP":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "wipe top"
+                  )
+                );
+                break;
+              case "WIPE BOTTOM":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "wipe bottom"
+                  )
+                );
+                break;
+              case "WIPE LEFT":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "wipe left"
+                  )
+                );
+                break;
+              case "WIPE RIGHT":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "wipe right"
+                  )
+                );
+                break;
+              case "WHEEL":
+                store.dispatch(
+                  updateEffectType(
+                    [store.getState().highlightKf.currentHighlightKf.aniId],
+                    "wheel"
+                  )
+                );
+                break;
+            }
           }
-        }, 100);
-      }
+
+          that.tracePoints = [];
+          that.traceGrouping = [];
+          that.sketchResult = [];
+          that.clearCanvas();
+        }
+      }, 100);
     }
   }
 
@@ -488,7 +384,6 @@ class SketchCanvas {
   chooseMarks(pnts: ICoord[]): { isL: boolean; selection: string[] } {
     const isL: boolean = jsTool.isLasso(pnts, Lasso.CLOSE_THR);
     const Axis_domain: string = jsTool.isAxis(pnts);
-    // const isSketch: boolean = (jsTool.is)
     let selection: string[] = [];
     const sketchMarks = this.findBySketch(pnts);
     if (sketchMarks.length) {
@@ -499,7 +394,7 @@ class SketchCanvas {
         document.getElementById("visChart"),
         pnts
       );
-      selection = lassoSelection.lassoSelect(store.getState().selection);
+      selection = lassoSelection.lassoSelect(store.getState().selectionfake);
     } else if (Axis_domain === "axis_domain" || "axis_left") {
       const axisSelection = new Axis();
       for (let i = 0, len = pnts.length; i < len; i += 2) {
@@ -537,7 +432,7 @@ class SketchCanvas {
         }
       }
       selection = crossOverSelection.crossOverSelect(
-        store.getState().selection
+        store.getState().selectionfake
       );
     }
     return { isL: isL, selection: selection };
@@ -577,9 +472,7 @@ class SketchCanvas {
       let markLength = -1;
       try {
         markLength = mark.getTotalLength() * store.getState().chartScaleRatio;
-      } catch {
-        // just ignore some cases don't have length (such as text)
-      }
+      } catch {}
       if (
         Math.abs(markBBox.left - sketchBBox.left) <= bboxThreshold &&
         Math.abs(markBBox.top - sketchBBox.top) <= bboxThreshold &&
@@ -637,24 +530,11 @@ class SketchCanvas {
     return result.size > 0 ? [...result] : selection;
   }
 
-  /**
-   * user is drawing cancel mark
-   */
-  // canceling() {
-  //     Reducer.saveAndTriger(action.UPDATE_MARKS_TO_CONFIRM, state.marksToConfirm, []);
-  //     Reducer.saveAndTriger(action.UPDATE_SUGGESTED_MARKS, state.suggestedMarks, []);
-  //     console.log('after cancel: ', state.suggestedMarks, state.marksToConfirm);
-  // }
-
   clearCanvas() {
     this.ctx.clearRect(0, 0, this.width, this.height);
     this.tracePoints = [];
   }
 
-  /**
-   * where the user is sketching in chart view 判断用户进行交互操作的位置
-   *维护进sketchTarget 到底是 chart部分还是kf部分？
-   */
   judgeSketchTarget(startSketchPnt: ICoord) {
     const chartArea: DOMRect = document
       .getElementById(CHART_VIEW_CONTENT_ID)
@@ -663,7 +543,6 @@ class SketchCanvas {
       .getElementById(KF_VIEW_CONTENT_ID)
       .getBoundingClientRect();
     if (jsTool.inBoundary(chartArea, startSketchPnt)) {
-      // if (jsTool.inBoundary({ x1: chartArea.x, y1: chartArea.y, x2: chartArea.x + chartArea.width, y2: chartArea.y + chartArea.height }, startSketchPnt)) {
       this.sketchTarget = SketchCanvas.CHART_SKETCH;
     } else if (jsTool.inBoundary(kfArea, startSketchPnt)) {
       this.sketchTarget = SketchCanvas.KF_SKETCH;

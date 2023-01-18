@@ -1,6 +1,5 @@
 import KfGroup, { GROUP_RX } from "./kfGroup";
 import KfItem from "./kfItem";
-import { state } from "../../../app/state";
 import { Animation, TimingSpec } from "canis_toolkit";
 import IntelliRefLine from "./intelliRefLine";
 import KfTrack from "./kfTrack";
@@ -262,7 +261,6 @@ export default class KfOmit {
         trackCount++;
         trackNum = trackCount;
       }
-      // const trackNum: number = ((!ommittedKf.merge && ommittedKf.timing === TimingSpec.timingRef.previousEnd) || ommittedKf.timing === TimingSpec.timingRef.previousStart) ? trackCount : 0;
       this.IconComb.appendChild(
         this.createSubThumbnail(
           ommittedKf.hasOffset,
@@ -407,14 +405,9 @@ export default class KfOmit {
             "width",
             `${KfOmit.OMIT_W_UNIT}`
           );
-          // } else {
-          //     this.kfIcon.setAttributeNS(null, 'width', `${KfOmit.OMIT_W_UNIT * 4}`);
-          //     this.durationIcon.setAttributeNS(null, 'width', '0');
-          // }
         } else {
           this.offsetIcon.setAttributeNS(null, "width", "0");
           this.kfIcon.setAttributeNS(null, "x", "0");
-          // if (this.hasDuration) {
           this.kfIcon.setAttributeNS(
             null,
             "width",
@@ -430,10 +423,6 @@ export default class KfOmit {
             "width",
             `${KfOmit.OMIT_W_UNIT}`
           );
-          // } else {
-          //     this.kfIcon.setAttributeNS(null, 'width', `${KfOmit.OMIT_W_UNIT * 5}`);
-          //     this.durationIcon.setAttributeNS(null, 'width', '0');
-          // }
         }
         break;
     }

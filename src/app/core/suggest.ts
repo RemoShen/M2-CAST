@@ -4,7 +4,6 @@ import KfGroup from "../../redux/views/vl/kfGroup";
 import {
   CATEGORICAL_ATTR,
   EFFECTIVENESS_RANKING,
-  NUMERIC_ATTR,
 } from "../consts";
 import { ICanisSpec } from "./canisGenerator";
 import KfItem from "../../redux/views/vl/kfItem";
@@ -69,7 +68,6 @@ export default class Suggest {
         );
       });
     }
-    // Reducer.triger(action.UPDATE_SUGGEST_SPECS, this.tmpSpecs);
     store.dispatchSystem(updateSuggestSpecs(this.tmpSpecs));
   }
 
@@ -120,7 +118,6 @@ export default class Suggest {
     markIdArr1: string[],
     markIdArr2: string[]
   ): string[] {
-    //markIdArr1: first kf data marks   markIdArr2: last kf data marks
     let attrDiffValues: string[] = [];
     const dataAttrArr: string[] = Util.dataAttrs;
 
@@ -425,25 +422,6 @@ export default class Suggest {
   }
 
   /**
-   * filter the attribute names according to the effectiveness ranking of visual channels
-   * @param attrArr
-   */
-  // public static filterAttrs(attrArr: string[]): string[] {
-  //     let filteredAttrs: string[] = [];
-  //     let typeRecorder: string = '';
-  //     Util.EFFECTIVENESS_RANKING.forEach((channel: string) => {
-  //         attrArr.forEach((aName: string) => {
-  //             const tmpAttrChannel: string = ChartSpec.chartUnderstanding[aName];
-  //             if (tmpAttrChannel === channel && (tmpAttrChannel === typeRecorder || typeRecorder === '')) {
-  //                 filteredAttrs.push(aName);
-  //                 typeRecorder = tmpAttrChannel;
-  //             }
-  //         })
-  //     })
-  //     return filteredAttrs;
-  // }
-
-  /**
    * order the attribute names according to the effectiveness ranking of visual channels
    * @param attrArr
    */
@@ -641,9 +619,6 @@ export default class Suggest {
           } else {
             sectionIdRecord.push([...seperateSecId]);
           }
-          // if (asscendingOrder && secIsFirstKf) {
-          //     firstKfIdx = sectionIdRecord.length - 1;
-          // }
         }
         sections.get(sectionId).push(mId);
       });
@@ -657,14 +632,12 @@ export default class Suggest {
           }
         }
         if (!flag) {
-          //if this one mark cannot form a section, we need to add markid into section id
           sections.clear();
           sectionIdRecord = [];
           lastKfMarks.forEach((mId: string) => {
             let sectionId: string = "";
             let sepSecIdRecord: Set<string> = new Set();
             let seperateSecId: Set<string> = new Set();
-            // let secIsFirstKf: boolean = false;
             attrComb.forEach((aName: string) => {
               let tmpValue: string | number = (Util.filteredDataTable.get(
                 mId
@@ -675,16 +648,11 @@ export default class Suggest {
                 let orderDirect: number = valueIdx.get(aName);
                 if (orderDirect === 1) {
                   asscendingOrder = false;
-                  // secIsFirstKf = false;
-                  // tmpValue = 'zzz_' + tmpValue;//for ordering
                 } else {
                   asscendingOrder = true;
-                  // secIsFirstKf = true;
-                  // tmpValue = '000_' + tmpValue;//for ordering
                 }
               }
               Util.addAttrValue(seperateSecId, `${tmpValue}`);
-              // seperateSecId.add(`${tmpValue}`);
             });
             if (hasOneMark) {
               sectionId = `${sectionId},${mId}`;
@@ -693,9 +661,6 @@ export default class Suggest {
             if (typeof sections.get(sectionId) === "undefined") {
               sections.set(sectionId, []);
               sectionIdRecord.push([...seperateSecId]);
-              // if (asscendingOrder && secIsFirstKf) {
-              //     firstKfIdx = seperateSecId.length - 1;
-              // }
             }
             sections.get(sectionId).push(mId);
           });
@@ -809,7 +774,6 @@ export default class Suggest {
       //remove 000_ and zzz_ added for ordering
       for (let i = 0, len = sectionIdRecord.length; i < len; i++) {
         for (let j = 0, len2 = sectionIdRecord[i].length; j < len2; j++) {
-          // if ((<string>sectionIdRecord[i][j]).includes('000_') || (<string>sectionIdRecord[i][j]).includes('zzz_')) {
           if ((<string>sectionIdRecord[i][j]).indexOf("_") === 3) {
             const checkStr: string = (<string>sectionIdRecord[i][j]).substring(
               0,
@@ -965,38 +929,6 @@ export default class Suggest {
     return { uniqueKfIdxs: uniqueKfs, hasNextUniqueKf: nextKf !== -1 };
   }
 
-  // /**
-  //  * return index of the unique kfs in each path
-  //  * @param {*} repeatKfRecord
-  //  */
-  // public static findUniqueKfs(repeatKfRecord: string[][][]): number[][] {
-  //     let pathWithUniqueAndMissingKfs: number[][] = [];
-  //     for (let i = 0, len = repeatKfRecord.length; i < len; i++) {
-  //         let uniqueKf: number[] = []; //record unique kf idx of this path
-  //         let removeIdx = [i];//index of the paths that don't need to compare
-  //         //kf index currently being compared
-  //         for (let compareKfIdx = 0, len2 = repeatKfRecord[i].length; compareKfIdx < len2; compareKfIdx++) {
-  //             let flag = true;//if the kf is the same in all paths
-  //             for (let j = 0; j < len; j++) {
-  //                 if (!removeIdx.includes(j)) {
-  //                     //compare the current kf
-  //                     let tmpFlag = jsTool.identicalArrays(repeatKfRecord[i][compareKfIdx], repeatKfRecord[j][compareKfIdx]);
-  //                     if (!tmpFlag) {//this path in this kf is different from others
-  //                         flag = false;
-  //                         removeIdx.push(j);
-  //                     } else {
-  //                         continue;
-  //                     }
-  //                 }
-  //             }
-  //             if (!flag) {
-  //                 uniqueKf.push(compareKfIdx);
-  //             }
-  //         }
-  //         pathWithUniqueAndMissingKfs.push(uniqueKf);
-  //     }
-  //     return pathWithUniqueAndMissingKfs;
-  // }
 
   public static generateSuggestionPath(
     selectedMarks: string[],
@@ -1024,7 +956,7 @@ export default class Suggest {
     } else {
       //suggest based on all marks in animation
       const marksThisAni: string[] = targetKfg.marksThisAni();
-      Suggest.suggestPaths(selectedMarks, marksThisAni, orderInfo);
+      Suggest.suggestPaths(selectedMarks, marksThisAni, orderInfo);//get suggest info
     }
     return suggestOnFirstKf;
   }
@@ -1088,11 +1020,8 @@ export default class Suggest {
     colorAttr: string
   ) {
     let possibleKfs: Array<[string[], Map<string, string[]>, string[]]> = [];
-    //首先判断shape
     if (allColorShape) {
-      //形状颜色都相同, 按照形状在year上进行推荐
       let shapeSuggest: string[] = [];
-      //shape
       for (let i = 0; i < selectMarks.length - 1; i++) {
         let temp: string = "";
         selectMarks[i].forEach((mark: string) => {
@@ -1117,7 +1046,7 @@ export default class Suggest {
           allYear.push(Util.filteredDataTable.get(mark)["year"] as number);
         }
       });
-      allYear.sort((a, b) => a - b); //对year排序
+      allYear.sort((a, b) => a - b);
       const firstSelectPosi: number = allYear.indexOf(FirstSelectYear);
       posiSuggest = allYear
         .slice(firstSelectPosi)
@@ -1141,8 +1070,6 @@ export default class Suggest {
       possibleKfs.push([attrComb, sections, resultAttr]);
       return possibleKfs;
     } else {
-      //颜色相同，形状不同，先推荐颜色，后推荐形状，按照Year进行排列
-      //color
       let colorSuggest: string[] = [];
       for (let i = 0; i < selectMarks.length - 1; i++) {
         let temp: string = "";
@@ -1153,7 +1080,6 @@ export default class Suggest {
         temp = temp.substring(0, temp.length - 1);
         colorSuggest.push(temp);
       }
-      //shape
       let shapeSuggest: string[] = [];
       let temp: string = "";
       selectMarks[0].forEach((mark: string) => {
@@ -1169,7 +1095,6 @@ export default class Suggest {
       });
       temp = temp.substring(0, temp.length - 1);
       shapeSuggest.push(temp);
-      //Year
       let timeSuggest: string[] = [];
       let attrComb: string[] = [];
       let FirstSelectYear: string;
@@ -1522,7 +1447,6 @@ export default class Suggest {
               break;
             }
           }
-          // repeatKfRecord.push(repeatKfs);
           this.allPaths.push({
             attrComb: attrComb,
             sortedAttrValueComb: orderedSectionIds,
@@ -1681,10 +1605,6 @@ export default class Suggest {
           const combineSelect: string[] = currentSelect.concat(
             currentUsedMarks[0]
           );
-          // const [sameAttrs, diffAttrs] = this.findSameDiffAttrs(
-          //   combineSelect,
-          //   true
-          // );
           if (sameAttrs.indexOf("mShape") > -1 && colorAttr.length === 0) {
             const allColorShape: boolean = true;
             possibleKfs = this.generateMultikfs(
@@ -1951,158 +1871,6 @@ export default class Suggest {
             this.allPaths.splice(filterAllPaths[i], 1);
           }
 
-          // // suggest for non-data marks
-          // const appendedNonDataMarksCombinations: string[][] = [];
-          // if (sortedAttrs.get("position")?.length) {
-          //   Util.getCombinations(sortedAttrs.get("position")).forEach(
-          //     (combine) => {
-          //       const appendedNonDataMarksSet = new Set<string>();
-          //       combine.forEach((field) => {
-          //         const nonDataMarks = sepLastKfMarks.nonDataMarks;
-          //         const acceptableValues: (string | number)[] =
-          //           Util.dataValues.get(field);
-          //         nonDataMarks.filter((mid) => {
-          //           const nonDatum = Util.nonDataTable.get(mid);
-          //           if (acceptableValues.includes(nonDatum.text)) {
-          //             nonDatum[field] = nonDatum.text;
-          //             appendedNonDataMarksSet.add(mid);
-          //           }
-          //         });
-          //       });
-          //       let appendedNonDataMarks = [...appendedNonDataMarksSet].sort();
-          //       if (appendedNonDataMarks.length) {
-          //         appendedNonDataMarks =
-          //           lastKfDataMarks.concat(appendedNonDataMarks);
-          //         if (
-          //           !appendedNonDataMarksCombinations.find(
-          //             (arr) =>
-          //               arr.length === appendedNonDataMarks.length &&
-          //               arr.every((v, i) => v === appendedNonDataMarks[i])
-          //           )
-          //         ) {
-          //           appendedNonDataMarksCombinations.push(appendedNonDataMarks);
-          //         }
-          //       }
-          //     }
-          //   );
-          // }
-          // appendedNonDataMarksCombinations.forEach((lastKfDataMarks) => {
-          //   const allPaths: IPath[] = [];
-          //   let allPossibleKfs = this.generateRepeatKfs(
-          //     sortedAttrs,
-          //     valueIdx,
-          //     firstKfDataMarks,
-          //     lastKfDataMarks,
-          //     oneMarkInFirstKf
-          //   );
-          //   let repeatKfRecord: any[] = [];
-          //   let filterAllPaths: number[] = [],
-          //     count = 0; //record the index of the path that should be removed: not all selected & not one mark in 1st kf
-          //   allPossibleKfs.forEach((possiblePath: any[]) => {
-          //     let attrComb: string[] = possiblePath[0];
-          //     let sections: Map<string, string[]> = possiblePath[1];
-          //     let orderedSectionIds: string[] = possiblePath[2];
-          //     let repeatKfs = [];
-          //     let allSelected = false;
-          //     let oneMarkFromEachSec = false,
-          //       oneMarkEachSecRecorder: Set<string> = new Set();
-          //     let numberMostMarksInSec = 0,
-          //       selectedMarks: Map<string, string[]> = new Map(); //in case of one mark from each sec
-
-          //     orderedSectionIds.forEach((sectionId: string) => {
-          //       let tmpSecMarks = sections.get(sectionId);
-          //       if (tmpSecMarks.length > numberMostMarksInSec) {
-          //         numberMostMarksInSec = tmpSecMarks.length;
-          //       }
-
-          //       //check if marks in 1st kf are one from each sec
-          //       firstKfMarks.forEach((mId: string) => {
-          //         if (tmpSecMarks.includes(mId)) {
-          //           selectedMarks.set(sectionId, [mId]);
-          //           oneMarkEachSecRecorder.add(sectionId);
-          //         }
-          //       });
-          //     });
-
-          //     if (
-          //       oneMarkEachSecRecorder.size === sections.size &&
-          //       firstKfMarks.length === sections.size
-          //     ) {
-          //       oneMarkFromEachSec = true;
-          //     }
-
-          //     if (oneMarkFromEachSec) {
-          //       //if the mark is from one section
-          //       for (let i = 0; i < numberMostMarksInSec - 1; i++) {
-          //         let tmpKfMarks = [];
-          //         for (let j = 0; j < orderedSectionIds.length; j++) {
-          //           let tmpSecMarks = sections.get(orderedSectionIds[j]);
-          //           let tmpSelected = selectedMarks.get(orderedSectionIds[j]);
-          //           for (let z = 0; z < tmpSecMarks.length; z++) {
-          //             if (!tmpSelected.includes(tmpSecMarks[z])) {
-          //               tmpKfMarks.push(tmpSecMarks[z]);
-          //               selectedMarks
-          //                 .get(orderedSectionIds[j])
-          //                 .push(tmpSecMarks[z]);
-          //               break;
-          //             }
-          //           }
-          //         }
-          //         repeatKfs.push(tmpKfMarks);
-          //       }
-          //     } else {
-          //       for (let i = 0, len = orderedSectionIds.length; i < len; i++) {
-          //         let tmpSecMarks = sections.get(orderedSectionIds[i]);
-          //         let judgeSame = jsTool.identicalArrays(
-          //           firstKfMarks,
-          //           tmpSecMarks
-          //         );
-          //         if (!allSelected && judgeSame && !oneMarkInFirstKf) {
-          //           allSelected = true;
-          //         }
-          //         if (!judgeSame) {
-          //           //dont show the 1st kf twice
-          //           repeatKfs.push(tmpSecMarks);
-          //         }
-          //       }
-          //     }
-
-          //     let samePath = false;
-          //     for (let i = 0; i < allPaths.length; i++) {
-          //       if (jsTool.identicalArrays(repeatKfs, allPaths[i].kfMarks)) {
-          //         samePath = true;
-          //         break;
-          //       }
-          //     }
-          //     // repeatKfRecord.push(repeatKfs);
-          //     allPaths.push({
-          //       attrComb: attrComb,
-          //       sortedAttrValueComb: orderedSectionIds,
-          //       kfMarks: repeatKfs,
-          //       firstKfMarks: firstKfDataMarks,
-          //       lastKfMarks: lastKfDataMarks,
-          //     });
-          //     //check if the selection is one mark from each sec
-          //     if (
-          //       (!allSelected && !oneMarkInFirstKf && !oneMarkFromEachSec) ||
-          //       samePath
-          //     ) {
-          //       filterAllPaths.push(count);
-          //     }
-          //     count++;
-          //   });
-
-          //   //filter all paths
-          //   filterAllPaths.sort(function (a, b) {
-          //     return b - a;
-          //   });
-          //   for (let i = 0; i < filterAllPaths.length; i++) {
-          //     allPaths.splice(filterAllPaths[i], 1);
-          //   }
-
-          //   this.allPaths.push(...allPaths);
-          // });
-
           //check numeric ordering
           let hasNumericOrder: boolean = false;
           let numericOrders: { attr: string; order: number; marks: string[] }[];
@@ -2167,8 +1935,6 @@ export default class Suggest {
           typeCount.get(attrValStr).push(mId);
           attrValstrs.add(attrValStr);
         });
-        // const attrValStr = [...typeCount][0][0];
-        //check whether there is one from each type
         let oneFromEachType: boolean = true;
         typeCount.forEach((mIds: string[], mType: string) => {
           if (mIds.length > 1) {
@@ -2176,7 +1942,6 @@ export default class Suggest {
           }
         });
 
-        // if (typeCount.size === 1 && [...typeCount][0][1] === 1) {
         if (oneFromEachType) {
           //fetch all marks with the same attr values
           let suggestionLastKfMarks: Map<string, string[]> = new Map(); //key: attrValStr, value: marks have those attr values
@@ -2238,9 +2003,6 @@ export default class Suggest {
           let sortedAttrValueComb: string[] = tmpKfMarks.map((mIds: string[]) =>
             mIds.join(",")
           );
-          // sortedAttrValueComb = tmpKfMarks.map((mIds: string[]) => mIds[0]);
-
-          // const attrComb: string[] = ['id'];
           if (typeCount.size === 1) {
             sortedAttrValueComb = tmpKfMarks.map((mIds: string[]) => mIds[0]);
             const attrComb: string[] =
@@ -2283,8 +2045,6 @@ export default class Suggest {
               ];
             }
           }
-          // const attrComb: string[] = typeCount.size === 1 ? ['id'] : ['clsIdx'];
-          // this.allPaths = [{ attrComb: attrComb, sortedAttrValueComb: sortedAttrValueComb, kfMarks: tmpKfMarks, firstKfMarks: firstKfNonDataMarks, lastKfMarks: allLastKfMarks }];
         }
       }
     }
@@ -2317,13 +2077,9 @@ export default class Suggest {
     updateState: boolean = true
   ) {
     console.log("updatestate", updateState);
-    // while(targetPath.kfMarks[targetPath.kfMarks.length - 1].length === 0){
-    //   targetPath.kfMarks.pop();
-    // }
     if (updateState) {
       suggestBox.resetProps();
     }
-    // const targetPath: IPath = allSuggestedPaths[0];
 
     let actionType: string = "";
     let actionInfo: any = {};
@@ -2357,27 +2113,6 @@ export default class Suggest {
         containsNonDataMarkInAni,
       ] = Util.extractClsFromMarks(marksInAni);
       if (!suggestOnFirstKf) {
-        //the suggestion is based on all marks in this animation as the last kf
-        // if (jsTool.identicalArrays(clsOfMarksInPath, clsOfMarksThisAni)) {
-        //   //marks in current path have the same classes as those in current animation
-        //   if (clsOfMarksInPath.length > 1 && !containsNonDataMarkInPath) {
-        //     //create multiple animations
-        //     actionType = REMOVE_CREATE_MULTI_ANI;
-        //     actionInfo = {
-        //       aniId: aniId,
-        //       path: targetPath,
-        //       attrValueSort: attrValueSort,
-        //     };
-        //   } else {
-        //     //create grouping
-        //     actionType = UPDATE_SPEC_GROUPING;
-        //     actionInfo = {
-        //       aniId: aniId,
-        //       attrComb: targetPath.attrComb,
-        //       attrValueSort: attrValueSort,
-        //     };
-        //   }
-        // } else {
           //marks in current path don't have the same classes as those in current animation
           if (clsOfMarksInPath.length > 1 && !containsNonDataMarkInPath) {
             //create multiple animations
@@ -2409,8 +2144,6 @@ export default class Suggest {
       } else {
         //the suggestion is based on all marks in current first  kf as the last kf
         if (clsOfMarksInPath.length > 1) {
-          //change timing of marks of different classes
-          // console.log('diff cls first kf as last: ', targetPath, targetPath.attrComb, attrValueSort);
           actionType = APPEND_SPEC_GROUPING;
           actionInfo = {
             aniId: aniId,
@@ -2449,7 +2182,6 @@ export default class Suggest {
         .selectMarks.forEach((mIds: string[], className: string) => {
           oldSelectedMarks = [...oldSelectedMarks, ...mIds];
         });
-      // Reducer.saveAndTriger(action.UPDATE_SELECTED_MARKS, oldSelectedMarks, stateSelectedMarks);
       store.dispatchSystem(updateSelectMarks(stateSelectedMarks));
     } else {
       //tmp code

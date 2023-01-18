@@ -52,7 +52,6 @@ export class Player {
 
   public createPlayer(): void {
     this.widget = document.createElement("div");
-    // this.widget.style.minWidth = (0.98 * window.innerWidth / 2).toString() + 'px';
     this.playBtnWrapper = document.createElement("div");
     this.playBtnWrapper.id = "playBtnWrapper";
     this.playBtnWrapper.className = `play-btn-wrapper ${NON_SKETCH_CLS}`;
@@ -197,20 +196,11 @@ export class Player {
    */
   public playRange(startTime: number, endTime: number) {
     const duration: number = endTime - startTime;
-    // player.currentTime = startTime;
-    // if (typeof state.lottieAni !== 'undefined') {
-    //     state.lottieAni.goToAndPlay(Math.ceil(startTime / (1000 / player.frameRate)), true);
-    //     setTimeout(() => {
-    //         this.pauseAnimation();
-    //     }, duration);
-    // }
-    // this.renderFrame(startTime);
     this.currentTime = startTime;
     this.playAnimation([startTime, endTime]);
     console.log("playing from: ", startTime, endTime, duration);
     setTimeout(() => {
       this.pauseAnimation();
-      // store.getState().isPreviewing && store.dispatchSystem(updatePreviewing(store.getState().previewPath, { charts: [], animations: [] }, false, Suggest.allPaths.length !== 1));
     }, duration);
   }
 
@@ -250,11 +240,6 @@ export class Player {
     console.log("time_total", this.totalTime, timeRange);
     (<HTMLInputElement>document.getElementById(Player.PLAY_BTN_ID)).checked =
       false;
-    //check current mode
-    // if (!this.isPlayMode) {
-    //     this.togglePlayMode();
-    // }
-    // Reducer.triger(action.UPDATE_ISPLAYING, true);
     this.playing = true;
     if (this.currentTime === timeRange[1]) {
       this.currentTime = timeRange[0];
@@ -280,7 +265,6 @@ export class Player {
       this.slider.moveSlider(this.currentTime);
       const nextTimePoint: number = this.currentTime + 1000 / this.frameRate;
       if (nextTimePoint > this.totalTime) {
-        //播放逻辑
         this.pauseAnimation();
         store.getState().isPreviewing &&
           store.dispatchSystem(
@@ -293,7 +277,6 @@ export class Player {
   }
 
   public pauseAnimation() {
-    //暂停动画
     (<HTMLInputElement>document.getElementById(Player.PLAY_BTN_ID)).checked =
       true;
     this.playing = false;

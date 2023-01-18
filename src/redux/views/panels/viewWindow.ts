@@ -11,11 +11,8 @@ import {
 } from "../buttons/button-consts";
 import { DARK_COLOR, LIGHT_COLOR } from "../menu/menu-consts";
 import { SVGBtn } from "../buttons/svgButton";
-import { store } from "../../store";
-import { toggleVoice } from "../../action/voiceAction";
 import {
   CHART_VIEW_TITLE,
-  CONFIRM_BTN,
   KF_VIEW_TITLE,
   VIDEO_VIEW_CONTENT_ID,
   VIDEO_VIEW_TITLE,
@@ -29,10 +26,10 @@ import { IViewBtnProp } from "./interfaces";
 import { ICoord } from "../../global-interfaces";
 import { NON_SKETCH_CLS } from "../../global-consts";
 import { jsTool } from "../../../util/jsTool";
-import { update } from "lodash";
-import { sketchCanvas } from "./sketchCanvas";
+import { markSelection } from "../../../util/markSelection";
+import { store } from "../../store";
+import DivideWindow from "./divideWindow";
 
-export var confirmBtn: boolean = false;
 export default class ViewWindow {
   viewTitle: string;
   showTitle: boolean;
@@ -85,6 +82,7 @@ export default class ViewWindow {
         switch (titleText) {
           case KF_VIEW_TITLE:
             titleText = "Animation Specification"; //keyframe list
+            this.view.id = 'kfview0'
             break;
           case VIDEO_VIEW_TITLE:
             titleText = "Animation Preview";
@@ -132,7 +130,6 @@ export default class ViewWindow {
   public createChartUpperLayers(): void {
     this.createVideoLayer();
     this.createPlayerWidget();
-    // this.createVoiceBtn(); //创建左下角语音图标
     this.createZoomPanel();
     this.createConfirmBtn();
   }
@@ -158,19 +155,13 @@ export default class ViewWindow {
       values: [],
       events: [
         {
-          type: "pointerdown",
-          func: () => {
-            //muti s
-            // Reducer.triger(action.VOICE_AWAKE, true);
-            confirmBtn = true;
-          },
-        },
-        {
           type: "pointerup",
           func: () => {
-            // Reducer.triger(action.VOICE_AWAKE, false);
-            confirmBtn = false;
-            sketchCanvas.endDrawingBtn();
+            //interface 
+            const divideView: DivideWindow = new DivideWindow('divide spec', [['mark3']]);
+            divideView.createDivideView();
+            document.getElementById('kfview0').appendChild(divideView.view)
+
           },
         },
       ],
@@ -180,16 +171,14 @@ export default class ViewWindow {
   }
 
   public createZoomPanel() {
-    //缩放右下角
     const zoomPanel: HTMLDivElement = document.createElement("div");
     zoomPanel.innerHTML = "100%";
     zoomPanel.id = ZOOM_PANEL_ID;
     zoomPanel.className = `zoom-panel ${NON_SKETCH_CLS}`;
-    zoomPanel.hidden = true; //hidden 
+    zoomPanel.hidden = true;
     this.view.appendChild(zoomPanel);
   }
   public createPlayerWidget(): void {
-    //播放进度条组件
     const container: HTMLDivElement = document.createElement("div");
     container.className = "player-widget";
     container.appendChild(player.widget);
@@ -199,7 +188,6 @@ export default class ViewWindow {
   public createVideoLayer(): void {
     const container: HTMLDivElement = document.createElement("div");
     container.id = VIDEO_VIEW_CONTENT_ID;
-    // container.className = `${ViewContent.VIEW_CONTENT_CLS} hide-ele`;
     container.className = `${VIEW_CONTENT_CLS} ele-under`;
     this.view.appendChild(container);
   }
@@ -213,38 +201,6 @@ export default class ViewWindow {
         iconClass: "zoom-icon",
       })
     );
-    //create zooming slider
-
-    // const slider: Slider = new Slider([ViewWindow.MIN_ZOOM_LEVEL, ViewWindow.MAX_ZOOM_LEVEL], ViewWindow.MAX_ZOOM_LEVEL);
-    // slider.createSlider()
-    // slider.callbackFunc = (zl: number) => {
-    //     Reducer.triger(action.KEYFRAME_ZOOM_LEVEL, zl);
-    // };
-    // toolContainer.appendChild(this.createBtn({
-    //     title: 'Zoom Out',
-    //     clickEvtType: ViewToolBtn.CUSTOM,
-    //     clickEvt: () => {
-    //         if (store.getState().kfZoomLevel - ViewWindow.ZOOM_STEP >= ViewWindow.MIN_ZOOM_LEVEL) {
-    //             slider.moveSlider(store.getState().kfZoomLevel - ViewWindow.ZOOM_STEP);
-    //         } else {
-    //             slider.moveSlider(ViewWindow.MIN_ZOOM_LEVEL);
-    //         }
-    //     },
-    //     iconClass: 'zoom-out-icon'
-    // }));
-    // toolContainer.appendChild(slider.sliderContainer);
-    // toolContainer.appendChild(this.createBtn({
-    //     title: 'Zoom In',
-    //     clickEvtType: ViewToolBtn.CUSTOM,
-    //     clickEvt: () => {
-    //         if (store.getState().kfZoomLevel + ViewWindow.ZOOM_STEP <= ViewWindow.MAX_ZOOM_LEVEL) {
-    //             slider.moveSlider(store.getState().kfZoomLevel + ViewWindow.ZOOM_STEP);
-    //         } else {
-    //             slider.moveSlider(ViewWindow.MAX_ZOOM_LEVEL);
-    //         }
-    //     },
-    //     iconClass: 'zoom-in-icon'
-    // }));
     return toolContainer;
   }
 

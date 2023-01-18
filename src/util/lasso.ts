@@ -131,13 +131,11 @@ export default class Lasso {
   }
 
   public lassoSelect(framedMarks: string[]): string[] {
-    //lasso方式进行选择
     let result: string[] = [];
     //filter marks
     Array.from(document.getElementsByClassName("mark")).forEach(
       (m: HTMLElement) => {
         const markBBox = m.getBoundingClientRect();
-        //取左上角和右下角的两个点
         const coord1: ICoord = jsTool.screenToSvgCoords(
           this.svg,
           markBBox.left,

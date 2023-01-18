@@ -399,16 +399,13 @@ export const vlRenderer = {
           treeLevel,
           kfGroup
         );
-        // kfGroup.children.push(tmpKfGroup);
-        // tmpKfGroup.idxInGroup = kfGroup.children.length - 1;
-        // kfGroup.kfNum += tmpKfGroup.kfNum;
       });
     }
     return kfGroup;
   },
   renderActivatedPlusBtn: () => {
     const activatePlusBtn: IActivatePlusBtn = store.getState().activatePlusBtn;
-    const aniGroupToInsert: string = activatePlusBtn.aniId;
+    const aniGroupToInsert: string = KfGroup.groupToInsert;
     const selectedMarks: string[] = activatePlusBtn.selection;
     const orderInfo: IOrderInfo = activatePlusBtn.orderInfo;
     const previousKfs: string[][] = activatePlusBtn.previousKfs;
