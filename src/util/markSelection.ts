@@ -1,4 +1,4 @@
-import { ChartSpec, Animation } from "canis_toolkit";
+import { ChartSpec } from "canis_toolkit";
 import {
   colorNameHex,
   EXCLUDED_DATA_ATTR,
@@ -23,6 +23,7 @@ import {
 } from "../redux/views/menu/menu-consts";
 import { NAV_HEIGHT } from "../redux/views/nav/nav-consts";
 import {
+  updateMarksToConfirm,
   updateSelection,
   updateSelectionOrder,
   updateSelectMarksStep,
@@ -39,7 +40,6 @@ import {
   DATA_MENU_ID,
   CHART_VIEW_CONTENT_ID,
 } from "../redux/views/panels/panel-consts";
-import { isMark } from "./appTool";
 import { jsTool } from "./jsTool";
 import Suggest from "../app/core/suggest";
 import { updatePreviewing } from "../redux/action/videoAction";
@@ -51,13 +51,10 @@ import {
   suggestBox,
   SuggestBox,
 } from "../redux/views/vl/suggestBox";
-import { createKf, findTargetAni, ifComplete } from "../redux/views/vl/vl-util";
+import { createKf, findTargetAni } from "../redux/views/vl/vl-util";
 import { tip } from "../redux/views/widgets/tip";
-import KfItem from "../redux/views/vl/kfItem";
-import { REMOVE_SPEC_GROUPING } from "../redux/action/canisAction";
-import { toggleLoading } from "../redux/renderers/renderer-tools";
-import { Loading } from "../redux/views/widgets/loading";
-
+import { formatDefaultLocale, tsvFormatValue } from "d3";
+import { addHighlight, removeHighlight } from "./appTool";
 export interface IOrderInfo {
   correspondSelection: string[];
   attrName?: string;
@@ -137,6 +134,7 @@ export default class MarkSelection {
       confirmSuggestion = jsTool.inBoundary(bbox, posi);
     }
 
+    // if (isMark(target)) {
     //if touch the suggesting box
     if (suggesting && confirmSuggestion) {
       store.getState().suggestedMarks.forEach((marksId) => {
@@ -150,7 +148,7 @@ export default class MarkSelection {
           markSelection.checking([
             [...store.getState().selection, ...store.getState().suggestedMarks],
           ]);
-          store.dispatchSystem(updateSelectMarksStep([]));
+          // store.dispatchSystem(updateSelectMarksStep([]));
         }
       }, 100);
     } else if (suggesting && !confirmSuggestion) {
@@ -160,6 +158,7 @@ export default class MarkSelection {
         if (tmpTime === 0) {
           clearInterval(doing);
           markSelection.checking([store.getState().selection], true);
+          // store.dispatchSystem(updateSelectMarksStep([]));
         }
       }, 100);
     }
@@ -253,85 +252,184 @@ export default class MarkSelection {
       this.selectByData(dataVal, []);
     }
   }
-  /**
-   * user is drawing check mark, he might wants to:
-   * 1. confirm mark selection
-   * 2. confirm keyframe suggestion
-   */
-  afterDrawing(marksToConfirm: string[][], dontSuggest = false) {
-    Array.from(document.getElementsByClassName(SUGGESTION_FRAME_CLS)).forEach(
-      (sf: HTMLElement) => {
-        sf.remove();
+
+  complete(marksToConfirm: string[][]) {
+    console.warn(marksToConfirm);
+    const marks = Array.from(document.getElementsByClassName("mark"));
+
+    const tables: Map<string, { rows: Map<string, string[]>, cols: Map<string, string[]> }> = new Map();
+    const select: Set<string> = new Set();
+
+
+    for (let i of marksToConfirm[0]) {
+      select.add(i);
+    }
+    console.warn(select);
+
+    const nonRepeatElements: string[] = [];
+    for (let mark of marks) {
+      const collectionAttr = mark.getAttribute("collection");
+      if (collectionAttr == "" || collectionAttr == null) {
+        nonRepeatElements.push(mark.id);
+        continue;
       }
-    );
-    if (marksToConfirm[0].length > 0) {
-      //do mark suggestion
-      const suggestedAndSelected: string[] = [
-        ...new Set(Util.suggestSelection(store.getState().selection)),
-      ];
-      const suggested: string[] = jsTool.excludeArray(
-        suggestedAndSelected,
-        store.getState().selection
-      ); //mark suggest
+      const collection = JSON.parse(collectionAttr);
+      const id = collection["id"];
+      const row = collection["row"];
+      const col = collection["col"];
 
-      const axis: string[] = [
-        "axis-label",
-        "Title",
-        "legend-text",
-        "legend-value",
-        "title",
-        "axis-tick",
-        "axis-domain",
-        "legend-symbol",
-      ];
+      if (!tables.has(id)) {
+        tables.set(id, { rows: new Map(), cols: new Map() });
+      }
+      const table = tables.get(id);
+      if (!table.rows.has(row)) {
+        table.rows.set(row, []);
+      }
+      if (!table.cols.has(col)) {
+        table.cols.set(col, []);
+      }
+      table.rows.get(row).push(mark.id);
+      table.cols.get(col).push(mark.id);
+    }
 
-      if (suggested.length > 0 && !dontSuggest) {
-        store.dispatchSystem(updateSuggestedMarks(suggested));
-      } else {
-        //auto competition
-        store.dispatchSystem(updateSuggestedMarks([]));
+    let selectAll = false;
+    const fullRows = new Set<string>();
+    const fullCols = new Set<string>();
 
-        let keylist: string = "";
-        store.getState().selectMarks.forEach((key, value) => {
-          keylist = value;
-        }); //current select
+    for (let i of nonRepeatElements) {
+      if (select.has(i)) {
+        selectAll = true;
+        break;
+      }
+    }
+    let modifyed = false;
 
-        const suggestContain: boolean = jsTool.suggestContain(Suggest.allPaths);
-        console.log("allpaths", Suggest.allPaths);
-        const validPath = marksToConfirm[0].every((mid) =>
-          Suggest.allPaths.find((path) => path.lastKfMarks.includes(mid))
-        );
+    function addNewSelect(ids: string[]) {
+      for (let id of ids) {
+        if (select.has(id)) {
+          continue;
+        }
+        modifyed = true;
+        select.add(id);
+      }
+    }
 
-        if (
-          Suggest.allPaths.length > 0 &&
-          !suggestContain &&
-          validPath
-        ) {
-          for (let i = 0; i < suggestBox.options.length; i++) {
-            if (
-              jsTool.identicalArrays(
-                suggestBox.options[i].marksThisOption,
-                marksToConfirm[0]
-              )
-            ) {
-              suggestBox.currentSelection = i;
-              setTimeout(() => {
-                suggestBox.options[i].clickItem();
-              }, 10);
-              break;
-            }
+    function allSelected(ids: string[]): boolean {
+      for (let id of ids) {
+        if (!select.has(id)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function anySelected(ids: string[]): boolean {
+      for (let id of ids) {
+        if (select.has(id)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function shouldSelect(ids: string[]): boolean {
+      let numberSelected = 0;
+      for (let id of ids) {
+        if (select.has(id)) {
+          numberSelected++;
+          if (numberSelected == 2) {
+            return true;
           }
-        } else {
-          createKf([]);
+        }
+      }
+      if (ids.length === 1 && numberSelected) {
+        return true;
+      }
+      return false;
+    }
+
+    if (selectAll) {
+      for (let [tableid, table] of tables) {
+        if (Array.from(table.rows.values()).some(anySelected)) {
+          for (let [rowid, row] of table.rows) {
+            addNewSelect(row);
+          }
         }
       }
     } else {
-      if (dontSuggest === false) {
-        tip.show("No mark selected.");
+      for (let [tableid, table] of tables) {
+        let rowSelected = 0;
+        let colSelected = 0;
+        for (let [rowid, row] of table.rows) {
+          if (anySelected(row)) {
+            rowSelected += 1;
+          }
+        }
+        for (let [colid, col] of table.cols) {
+          if (anySelected(col)) {
+            colSelected += 1;
+          }
+        }
+        if (rowSelected > 1 && colSelected == 1) {
+          for (let [colid, col] of table.cols) {
+            if (anySelected(col)) {
+              addNewSelect(col);
+            }
+          }
+        } else if (rowSelected == 1 && colSelected > 1) {
+          for (let [rowid, row] of table.rows) {
+            if (anySelected(row)) {
+              addNewSelect(row);
+            }
+          }
+        }
       }
     }
+
+    // let iteration = 1;
+
+    // do {
+    //   console.warn(iteration++)
+    //   modifyed = false;
+    //   for (let i = 0; i < 2; i++)
+    //     tables.forEach(v => {
+    //       let selectedAllRows = true;
+    //       let selectedAllCols = true;
+    //       let selectedAnyRows = false;
+    //       let selectedAnyCols = false;
+    //       v.cols.forEach((v, k) => {
+    //         if (anySelected(v) && (selectAll || fullCols.has(k) || shouldSelect(v))) {
+    //           // addNewSelect(v);
+    //           fullCols.add(k);
+    //           selectedAnyCols = true;
+    //         } else {
+    //           selectedAllCols = false;
+    //         }
+    //       });
+    //       v.rows.forEach((v, k) => {
+    //         // console.warn(v);
+    //         // console.warn(select);
+    //         if (anySelected(v) && (selectAll || fullRows.has(k) || shouldSelect(v))) {
+    //           // addNewSelect(v);
+    //           fullRows.add(k);
+    //           selectedAnyRows = true;
+    //         } else {
+    //           selectedAllRows = false;
+    //         }
+    //       });
+    //       if (selectedAllCols || selectedAllRows) {
+    //         selectAll = true;
+    //       }
+    //       if(selectedAnyCols && selectedAnyRows){
+    //         return;
+    //       }
+
+    //     })
+    // } while (modifyed)
+    return [...select].sort();
+    // TODO: sort by category, not by id
   }
-  checking(marksToConfirm: string[][], dontSuggest = false) {
+  beginSuggest(marksToConfirm: string[][], dontSuggest = false) {
     if (!store.getState().previewSpec) {
       //confirming mark selection
       Array.from(document.getElementsByClassName(SUGGESTION_FRAME_CLS)).forEach(
@@ -342,7 +440,9 @@ export default class MarkSelection {
       if (marksToConfirm.length === 1) {
         //noMulti Select
         if (marksToConfirm[0].length > 0) {
-          store.dispatch(updateSelection(marksToConfirm[0]));
+
+          //do mark suggestion
+
           const axis: string[] = [
             "axis-label",
             "Title",
@@ -353,57 +453,102 @@ export default class MarkSelection {
             "axis-domain",
             "legend-symbol",
           ];
-          //auto competition
-          const selectMarksValue: {
-            dataMarks: string[];
-            nonDataMarks: string[];
-          } = Util.separateDataAndNonDataMarks(store.getState().selection);
-          if (selectMarksValue.dataMarks.length > 0) {
-            store.dispatchSystem(
-              updateSelectMarksStep(selectMarksValue.dataMarks)
+          {
+            //auto competition
+            store.dispatchSystem(updateSuggestedMarks([]));
+            store.dispatch(
+              updateSelectMarksStep(marksToConfirm[0])
             );
-          }
-
-          let keylist: string = "";
-          store.getState().selectMarks.forEach((key, value) => {
-            keylist = value;
-          }); //current select
-
-          const suggestContain: boolean = jsTool.suggestContain(
-            Suggest.allPaths
-          );
-          console.log("allpaths", Suggest.allPaths);
-          const validPath = marksToConfirm[0].every((mid) =>
-            Suggest.allPaths.find((path) => path.lastKfMarks.includes(mid))
-          );
-
-          if (
-            Suggest.allPaths.length > 0 &&
-            !suggestContain &&
-            validPath
-          ) {
-            for (let i = 0; i < suggestBox.options.length; i++) {
-              if (
-                jsTool.identicalArrays(
-                  suggestBox.options[i].marksThisOption,
-                  marksToConfirm[0]
-                )
-              ) {
-                suggestBox.currentSelection = i;
-                setTimeout(() => {
-                  suggestBox.options[i].clickItem();
-                }, 10);
-                break;
-              }
+            const selectMarksValue: { dataMarks: string[]; nonDataMarks: string[] } =
+              Util.separateDataAndNonDataMarks(marksToConfirm[0]);
+            if (selectMarksValue.nonDataMarks.length > 0) {
+              store.dispatchSystem(
+                updateSelectMarksStep([])
+              );
             }
-          } else {
-            createKf([]);
+            store.dispatchSystem(updateSelection(marksToConfirm[0]));
+            let keylist: string = "";
+            store.getState().selectMarks.forEach((key, value) => {
+              keylist = value;
+            }); //current select
+
+            const suggestContain: boolean = jsTool.suggestContain(
+              Suggest.allPaths
+            );
+            console.log("allpaths", Suggest.allPaths);
+            const validPath = marksToConfirm[0].every((mid) =>
+              Suggest.allPaths.find((path) => path.lastKfMarks.includes(mid))
+            );
+            const notAllAttr: boolean = Util.notAllAttr(marksToConfirm[0]
+            );
+            if (
+              Suggest.allPaths.length > 0 &&
+              // axis.indexOf(keylist) == -1 &&
+              !suggestContain &&
+              notAllAttr &&
+              validPath
+            ) {
+              for (let i = 0; i < suggestBox.options.length; i++) {
+                if (
+                  jsTool.identicalArrays(
+                    suggestBox.options[i].marksThisOption,
+                    marksToConfirm[0]
+                  )
+                ) {
+                  suggestBox.currentSelection = i;
+                  setTimeout(() => {
+                    suggestBox.options[i].clickItem();
+                  }, 10);
+                  break;
+                }
+              }
+            } else {
+              createKf([]);
+            }
           }
         } else {
           if (dontSuggest === false) {
             tip.show("No mark selected.");
+            setTimeout(() => {
+              tip.hide();
+            }, 3000);
           }
         }
+      } else if (marksToConfirm.length > 1) {
+        //Multi Select
+        //confirm mark selection (multi kfs)
+        const previousKfs: string[][] = [...marksToConfirm];
+        // Reducer.saveAndTriger(action.UPDATE_SELECTION, state.selection, state.marksToConfirm[0]);
+        store.dispatch(updateSelection(marksToConfirm[0]));
+        createKf(previousKfs);
+      }
+    } else if (store.getState().previewSpec) {
+      //confirming keyframe suggestion
+      if (KfGroup.groupToInsert !== "") {
+        Suggest.filterPathsWithSelection(
+          SuggestBox.currentUniqueIdx,
+          store.getState().previewPath.kfMarks[SuggestBox.currentUniqueIdx]
+        );
+        let currentSelectedMarksEachStep: Map<number, string[]> =
+          typeof store.getState().activatePlusBtn.selectedMarksEachStep ===
+            "undefined"
+            ? new Map()
+            : new Map(store.getState().activatePlusBtn.selectedMarksEachStep);
+        const currentActionInfo: IActivatePlusBtn = {
+          aniId: store.getState().activatePlusBtn.aniId,
+          selection: store.getState().activatePlusBtn.selection,
+          selectedMarksEachStep: currentSelectedMarksEachStep.set(
+            SuggestBox.currentUniqueIdx,
+            store.getState().previewPath.kfMarks[SuggestBox.currentUniqueIdx]
+          ),
+          renderedUniqueIdx: SuggestBox.currentUniqueIdx,
+          orderInfo: { type: RANDOM_ORDER, correspondSelection: [] },
+          previousKfs: [],
+        };
+        store.dispatch(updateActivatePlusBtn(currentActionInfo));
+        store.dispatchSystem(
+          updatePreviewing(null, null, false, Suggest.allPaths.length !== 1)
+        );
       }
     }
     store.getState().selectMarks?.forEach((value, key) => {
@@ -411,6 +556,66 @@ export default class MarkSelection {
         document.getElementById(markId).setAttribute("opacity", "0.3");
       });
     });
+  }
+
+  sleep(delay: number) { return new Promise((resolve) => setTimeout(resolve, delay)) }
+
+  /**
+   * user is drawing check mark, he might wants to:
+   * 1. confirm mark selection
+   * 2. confirm keyframe suggestion
+   * 
+   */
+  checking(marksToConfirm: string[][], dontSuggest = false) {
+    if (tip.container != undefined) {
+      tip.hide();
+    }
+    let visChart = document.getElementById("visChart");
+    let parent = visChart.parentNode;
+    const completed = this.complete(marksToConfirm);
+    // if (!jsTool.identicalArrays(completed, marksToConfirm[0])) {
+    //   console.error("not good");
+    // }
+    marksToConfirm[0] = completed;
+    store.getState().selectMarks.forEach((value: string[]) => {
+      marksToConfirm[0] = marksToConfirm[0].filter(function (v) { return value.indexOf(v) == -1 })
+    });
+    if (marksToConfirm[0].length === 1) {
+      this.beginSuggest(marksToConfirm);
+    } else {
+      marksToConfirm[0].forEach(id => {
+        const element = document.getElementById(id);
+        // const animate = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+        // animate.setAttribute("attributeName", "opacity");
+        // let opacityAttr = element.getAttribute("opacity");
+        // let originalOpacity: number = 0;
+        // if (opacityAttr) {
+        //   originalOpacity = Number(opacityAttr);
+        // }
+        // animate.setAttribute("from", (.3 * originalOpacity).toString());
+        // animate.setAttribute("to", originalOpacity.toString());
+        // animate.setAttribute("dur", ".3");
+        // animate.setAttribute("begin", "0");
+        // animate.setAttribute("repeatCount", "indefinite");
+        // element.appendChild(animate);
+        addHighlight(element);
+      });
+      parent.removeChild(visChart);
+      parent.appendChild(visChart.cloneNode(true));
+      this.sleep(300).then(() => {
+        marksToConfirm[0].forEach(id => {
+          const element = document.getElementById(id);
+          removeHighlight(element);
+          // let children = Array.from(element.children);
+          // for (let i of children) {
+          //   if (i.tagName == "animate") {
+          //     element.removeChild(i);
+          //   }
+          // }
+        });
+        this.beginSuggest(marksToConfirm)
+      })
+    }
   }
 }
 

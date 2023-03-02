@@ -40,10 +40,12 @@ export default class Input {
   evWin: any;
   srcEvent: Event;
 
+  // constructor(obj: any) {
   constructor(manager?: Manager, callback?: any) {
     const that = this;
     this.manager = manager;
     this.callback = callback;
+    // Object.assign(this, obj);
     this.ele = this.manager.ele;
     this.target = this.manager.options.inputTarget;
     this.oldEvtCssProps = {};
@@ -51,6 +53,7 @@ export default class Input {
     // smaller wrapper around the handler, for the scope and the enabled state of the manager,
     // so when disabled the input events are completely bypassed.
     this.domHandler = (evt: Event) => {
+      // console.log('dom handler: ', evt);
       if (util.boolOrFn(that.manager.options.enable, [that.manager])) {
         that.handler(evt);
       }
@@ -75,6 +78,8 @@ export default class Input {
         Object.keys(this.manager.options.eventStyle)
       );
     }
+    // console.log('init input: ', this.evEl, this.evTarget, this.evWin, this.domHandler);
+
     if (this.evEl) {
       util.addEventListeners(this.ele, this.evEl, this.domHandler);
       util.addEventListeners(this.ele, this.evEl, this.evtActiveStyleHandler);
@@ -88,6 +93,7 @@ export default class Input {
         this.evWin,
         this.domHandler
       );
+      // console.log('inactive evts: ', this.evWin.split(' ').filter((evStr: string) => !evStr.includes('move')).join(' '));
       util.addEventListeners(
         util.getWindowForElement(this.ele),
         this.evWin

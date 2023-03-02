@@ -151,6 +151,8 @@ export default class SuggestAniFrame {
       tag: "line",
       para: {
         stroke: "#676767",
+        // strokeWidth: '1',
+        // strokeDasharray: '2 2',
         x1: "0",
         y1: `${this.labelHeight / 2}`,
         x2: `${this.padding}`,
@@ -162,6 +164,8 @@ export default class SuggestAniFrame {
       tag: "rect",
       para: {
         stroke: "#676767",
+        // strokeWidth: '1',
+        // strokeDasharray: '2 2',
         fill: "rgba(255, 255, 255, 0.5)",
         rx: `${this.labelHeight / 2}`,
         x: `${this.padding}`,

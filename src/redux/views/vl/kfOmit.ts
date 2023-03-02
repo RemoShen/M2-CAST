@@ -1,5 +1,6 @@
 import KfGroup, { GROUP_RX } from "./kfGroup";
 import KfItem from "./kfItem";
+import { state } from "../../../app/state";
 import { Animation, TimingSpec } from "canis_toolkit";
 import IntelliRefLine from "./intelliRefLine";
 import KfTrack from "./kfTrack";
@@ -261,6 +262,7 @@ export default class KfOmit {
         trackCount++;
         trackNum = trackCount;
       }
+      // const trackNum: number = ((!ommittedKf.merge && ommittedKf.timing === TimingSpec.timingRef.previousEnd) || ommittedKf.timing === TimingSpec.timingRef.previousStart) ? trackCount : 0;
       this.IconComb.appendChild(
         this.createSubThumbnail(
           ommittedKf.hasOffset,
@@ -334,8 +336,8 @@ export default class KfOmit {
       `${hasOffset ? KfOmit.OMIT_SUB_W_UNIT * 4 : KfOmit.OMIT_SUB_W_UNIT * 5}`
     );
     kfBg.setAttributeNS(null, "height", `${KfOmit.OMIT_SUB_HEIGHT}`);
-    kfBg.setAttributeNS(null, 'stroke', IntelliRefLine.Real_COLOR);
-    kfBg.setAttributeNS(null, 'stroke-dasharray', '1 0');
+    kfBg.setAttributeNS(null, "stroke", IntelliRefLine.Real_COLOR);
+    kfBg.setAttributeNS(null, "stroke-dasharray", "1 0");
 
     tmpContainer.appendChild(kfBg);
     const duraitonBg: SVGRectElement = document.createElementNS(
@@ -343,7 +345,7 @@ export default class KfOmit {
       "rect"
     );
     duraitonBg.setAttributeNS(null, "fill", KfItem.DURATION_COLOR);
-    duraitonBg.setAttributeNS(null, "x", `${KfOmit.OMIT_SUB_W_UNIT * 5 - 3}`); 
+    duraitonBg.setAttributeNS(null, "x", `${KfOmit.OMIT_SUB_W_UNIT * 5 - 3}`);
     duraitonBg.setAttributeNS(null, "height", `${KfOmit.OMIT_SUB_HEIGHT}`);
     duraitonBg.setAttributeNS(null, "width", `${KfOmit.OMIT_SUB_W_UNIT}`);
     tmpContainer.appendChild(duraitonBg);
@@ -405,9 +407,14 @@ export default class KfOmit {
             "width",
             `${KfOmit.OMIT_W_UNIT}`
           );
+          // } else {
+          //     this.kfIcon.setAttributeNS(null, 'width', `${KfOmit.OMIT_W_UNIT * 4}`);
+          //     this.durationIcon.setAttributeNS(null, 'width', '0');
+          // }
         } else {
           this.offsetIcon.setAttributeNS(null, "width", "0");
           this.kfIcon.setAttributeNS(null, "x", "0");
+          // if (this.hasDuration) {
           this.kfIcon.setAttributeNS(
             null,
             "width",
@@ -423,6 +430,10 @@ export default class KfOmit {
             "width",
             `${KfOmit.OMIT_W_UNIT}`
           );
+          // } else {
+          //     this.kfIcon.setAttributeNS(null, 'width', `${KfOmit.OMIT_W_UNIT * 5}`);
+          //     this.durationIcon.setAttributeNS(null, 'width', '0');
+          // }
         }
         break;
     }
@@ -452,7 +463,11 @@ export default class KfOmit {
   }
 
   public translateContainer(x: number, y: number) {
-    this.container.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+    this.container.setAttributeNS(
+      null,
+      "transform",
+      `translate(${Math.max(0, x)}, ${y})`
+    );
   }
 
   public createNum(omittedNum: number): void {

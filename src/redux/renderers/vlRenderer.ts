@@ -35,8 +35,6 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from "../views/panels/panel-consts";
 import { Animation } from "canis_toolkit";
 import { CHART_THUMBNAIL_ZOOM_LEVEL } from "../views/vl/vl-consts";
 import { resetKeyframeTracks, toggleLoading } from "./renderer-tools";
-import { treemap } from "d3";
-import { Loading } from "../views/widgets/loading";
 
 export const vlRenderer = {
   removeRedundentKfs: (kfgs: IKeyframeGroup[]) => {
@@ -184,20 +182,20 @@ export const vlRenderer = {
       ][0].trackPosiY;
 
       //check whether this is the group of animation, and whether to add a plus button or not
-      let plusBtn: PlusBtn,
-        addedPlusBtn: boolean = false;
-      if (treeLevel === 0) {
-        //this is the root group
-        //find the keyframes of the first group
-        // const tmpKfs: IKeyframe[] = Util.findFirstKfs(kfg);
-        // let [addingPlusBtn, acceptableMarkClasses] = PlusBtn.detectAdding(kfg, tmpKfs);//judge if add plus button
-        // if (addingPlusBtn) {
-        //     addedPlusBtn = addingPlusBtn;
-        //     plusBtn = new PlusBtn()
-        //     plusBtn.createBtn(kfGroup, tmpKfs, targetTrack, targetTrack.availableInsert, { width: KF_WIDTH - KF_W_STEP, height: KF_HEIGHT - 2 * PlusBtn.PADDING }, acceptableMarkClasses);
-        //     targetTrack.availableInsert += PlusBtn.PADDING * 4 + PlusBtn.BTN_SIZE;
-        // }
-      } //plus button
+      // let plusBtn: PlusBtn,
+      //   addedPlusBtn: boolean = false;
+      // if (treeLevel === 0) {
+      //   this is the root group
+      //   find the keyframes of the first group
+      //   const tmpKfs: IKeyframe[] = Util.findFirstKfs(kfg);
+      //   let [addingPlusBtn, acceptableMarkClasses] = PlusBtn.detectAdding(kfg, tmpKfs);//judge if add plus button
+      //   if (addingPlusBtn) {
+      //       addedPlusBtn = addingPlusBtn;
+      //       plusBtn = new PlusBtn()
+      //       plusBtn.createBtn(kfGroup, tmpKfs, targetTrack, targetTrack.availableInsert, { width: KF_WIDTH - KF_W_STEP, height: KF_HEIGHT - 2 * PlusBtn.PADDING }, acceptableMarkClasses);
+      //       targetTrack.availableInsert += PlusBtn.PADDING * 4 + PlusBtn.BTN_SIZE;
+      //   }
+      // } //plus button
       const previousAniId: string =
         typeof previousKfg === "undefined" ? "" : previousKfg.aniId;
       kfGroup.createGroup(
@@ -212,14 +210,14 @@ export const vlRenderer = {
         parentObj.children.push(kfGroup);
       } //add
 
-      if (addedPlusBtn) {
-        plusBtn.aniId = kfGroup.aniId;
-        PlusBtn.plusBtnMapping.set(plusBtn.aniId, plusBtn);
-        if (treeLevel === 0) {
-          plusBtn.fakeKfg.marks = kfGroup.marks;
-          plusBtn.fakeKfg.aniId = kfGroup.aniId;
-        }
-      }
+      // if (addedPlusBtn) {
+      //   plusBtn.aniId = kfGroup.aniId;
+      //   PlusBtn.plusBtnMapping.set(plusBtn.aniId, plusBtn);
+      //   if (treeLevel === 0) {
+      //     plusBtn.fakeKfg.marks = kfGroup.marks;
+      //     plusBtn.fakeKfg.aniId = kfGroup.aniId;
+      //   }
+      // }
     } else if (totalKfgNum > 3 && kfgIdx === totalKfgNum - 2) {
       const preChild = parentObj.children[1];
       const preChildTransX: number = jsTool.extractTransNums(
@@ -310,11 +308,12 @@ export const vlRenderer = {
       }
       kfIdxToDraw = [...new Set(kfIdxToDraw)].sort(
         (a: number, b: number) => a - b
-      );
-      //rendering kf
+        );
+        //rendering kf
       //check whether there should be a plus btn
       let kfPosiX = kfGroup.offsetWidth;
       //
+      
       kfg.keyframes.forEach((k: IKeyframe, i: number) => {
         //whether to draw this kf or not
         let kfOmit: KfOmit;
@@ -381,11 +380,6 @@ export const vlRenderer = {
           kfGroup.children.push(kfItem);
           // kfItem.idxInGroup = kfGroup.children.length - 1;
           kfPosiX += kfItem.totalWidth;
-          // if(kfItem.totalWidth > 1800){
-          //   kfPosiX += 205.6;
-          // }else{
-          //   kfPosiX += kfItem.totalWidth;
-          // }
         }
       });
     } else if (kfg.children.length > 0) {
@@ -399,13 +393,16 @@ export const vlRenderer = {
           treeLevel,
           kfGroup
         );
+        // kfGroup.children.push(tmpKfGroup);
+        // tmpKfGroup.idxInGroup = kfGroup.children.length - 1;
+        // kfGroup.kfNum += tmpKfGroup.kfNum;
       });
     }
     return kfGroup;
   },
   renderActivatedPlusBtn: () => {
     const activatePlusBtn: IActivatePlusBtn = store.getState().activatePlusBtn;
-    const aniGroupToInsert: string = KfGroup.groupToInsert;
+    const aniGroupToInsert: string = activatePlusBtn.aniId;
     const selectedMarks: string[] = activatePlusBtn.selection;
     const orderInfo: IOrderInfo = activatePlusBtn.orderInfo;
     const previousKfs: string[][] = activatePlusBtn.previousKfs;

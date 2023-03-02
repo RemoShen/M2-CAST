@@ -82,53 +82,56 @@ export default class IntelliRefLine {
           alignWithKfInfo = alignKf2;
           alignToKfInfo = alignKf1;
         }
-        if (alignWithKf.rendered && alignToKf.rendered) {
-          alignWithKfBBox = alignWithKf.container.getBoundingClientRect(); //fixed
-          alignToKfBBox = alignToKf.container.getBoundingClientRect(); //fixed
-          const [minX, maxX]: [number, number] = alignToKf.calAlignRange();
-          if (alignToKfInfo.timingRef === TimingSpec.timingRef.previousEnd) {
+        // if(alignWithKf != undefined && alignToKf != undefined){
+          if (alignWithKf.rendered && alignToKf.rendered) {
+            alignWithKfBBox = alignWithKf.container.getBoundingClientRect(); //fixed
+            alignToKfBBox = alignToKf.container.getBoundingClientRect(); //fixed
+            const [minX, maxX]: [number, number] = alignToKf.calAlignRange();
+            if (alignToKfInfo.timingRef === TimingSpec.timingRef.previousEnd) {
+              lineItem.line.setAttributeNS(
+                null,
+                "x1",
+                `${(maxX - containerBBox.left) / store.getState().kfZoomLevel}`
+              );
+              lineItem.line.setAttributeNS(
+                null,
+                "x2",
+                `${(maxX - containerBBox.left) / store.getState().kfZoomLevel}`
+              );
+            } else {
+              lineItem.line.setAttributeNS(
+                null,
+                "x1",
+                `${(minX - containerBBox.left) / store.getState().kfZoomLevel}`
+              );
+              lineItem.line.setAttributeNS(
+                null,
+                "x2",
+                `${(minX - containerBBox.left) / store.getState().kfZoomLevel}`
+              );
+            }
+  
+            // lineItem.line.setAttributeNS(null, 'y1', `${24}`);
             lineItem.line.setAttributeNS(
               null,
-              "x1",
-              `${(maxX - containerBBox.left) / store.getState().kfZoomLevel}`
+              "y1",
+              `${
+                (alignWithKfBBox.top - containerBBox.top) /
+                store.getState().kfZoomLevel
+              }`
             );
             lineItem.line.setAttributeNS(
               null,
-              "x2",
-              `${(maxX - containerBBox.left) / store.getState().kfZoomLevel}`
+              "y2",
+              `${
+                (alignToKfBBox.bottom - containerBBox.top) /
+                store.getState().kfZoomLevel
+              }`
             );
-          } else {
-            lineItem.line.setAttributeNS(
-              null,
-              "x1",
-              `${(minX - containerBBox.left) / store.getState().kfZoomLevel}`
-            );
-            lineItem.line.setAttributeNS(
-              null,
-              "x2",
-              `${(minX - containerBBox.left) / store.getState().kfZoomLevel}`
-            );
+            lineItem.line.setAttributeNS(null, "transform", "");
           }
+        // }
 
-          // lineItem.line.setAttributeNS(null, 'y1', `${24}`);
-          lineItem.line.setAttributeNS(
-            null,
-            "y1",
-            `${
-              (alignWithKfBBox.top - containerBBox.top) /
-              store.getState().kfZoomLevel
-            }`
-          );
-          lineItem.line.setAttributeNS(
-            null,
-            "y2",
-            `${
-              (alignToKfBBox.bottom - containerBBox.top) /
-              store.getState().kfZoomLevel
-            }`
-          );
-          lineItem.line.setAttributeNS(null, "transform", "");
-        }
       }
     }
   }
@@ -146,6 +149,8 @@ export default class IntelliRefLine {
           showHintLine = false;
         }
       }
+      // if (typeof kfGroup.alignId !== 'undefined' && typeof aniGroup.alignTarget !== 'undefined') {
+      //     if (kfGroup.alignId !== aniGroup.alignTarget && kfGroup.id !== aniGroup.id) {
       if (showHintLine) {
         const firstKf: KfItem = aniGroup.fetchFirstKf();
         const aniGroupBBox: DOMRect = aniGroup.groupBg.getBoundingClientRect(); //fixed
@@ -166,6 +171,7 @@ export default class IntelliRefLine {
           true,
           false
         );
+        // tmpHintLine2.hintAlign({ x: aniGroupBBox.left, y: aniGroupBBox.top }, aniGroupBBox.height / store.getState().kfZoomLevel, false);
         hintLines.push(tmpHintLine2);
         const tmpHintLine3: IntelliRefLine = new IntelliRefLine();
         tmpHintLine3.hintAlign(

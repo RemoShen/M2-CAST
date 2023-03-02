@@ -90,6 +90,37 @@ export class ListMenu extends Menu {
       createSvgElement({ tag: "g", para: {}, flag: true })
     );
     if (this.options.menuStruct.subMenu.length > 0) {
+      //line on the bottom
+      // const lastBtnPosi: ICoord = { x: this.options.menuCenter.x, y: this.options.menuCenter.y + FIRST_LEVEL_BTN_SIZE_BIG + (this.options.menuStruct.subMenu.length * 2 - 1) * SECOND_LEVEL_BTN_SIZE + this.options.menuStruct.subMenu.length * LIST_MENU_BTN_MARGIN };
+      // const line: SVGLineElement = <SVGLineElement>createAnimatingEle(
+      //     {
+      //         tag: 'line', para: {
+      //             class: NON_SKETCH_CLS,
+      //             stroke: STROKE_COLOR,
+      //             fill: 'none',
+      //             strokeDasharray: '4 3',
+      //             x1: `${this.options.menuCenter.x}`,
+      //             y1: `${this.options.menuCenter.y}`,
+      //             x2: `${this.options.menuCenter.x}`,
+      //             y2: `${this.options.menuCenter.y}`
+      //         }, flag: true
+      //     },
+      //     true,
+      //     [],
+      //     [{
+      //         attrName: 'x2',
+      //         from: `${this.options.menuCenter.x}`,
+      //         to: `${lastBtnPosi.x}`,
+      //         dur: '0.2s'
+      //     }, {
+      //         attrName: 'y2',
+      //         from: `${this.options.menuCenter.y}`,
+      //         to: `${lastBtnPosi.y}`,
+      //         dur: '0.2s'
+      //     }]
+      // )
+      // subMenuContainer.appendChild(line);
+
       //buttons
       for (
         let i = 0, len = this.options.menuStruct.subMenu.length;

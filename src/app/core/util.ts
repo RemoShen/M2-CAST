@@ -86,9 +86,8 @@ export default class Util {
     const heightRatio: number = (0.8 * svgH) / chartH;
     const scaleRatio: number =
       widthRatio > heightRatio ? heightRatio : widthRatio;
-    const transSt: string = `${
-      (svgW - chartW * scaleRatio) / 2
-    }, ${NAV_HEIGHT}`;
+    const transSt: string = `${(svgW - chartW * scaleRatio) / 2
+      }, ${NAV_HEIGHT}`;
     translateChart(
       { x: (svgW - chartW * scaleRatio) / 2, y: NAV_HEIGHT },
       false
@@ -643,8 +642,8 @@ export default class Util {
       for (const key in dataDatum) {
         let tmpAttrType: string =
           !isNaN(Number(dataDatum[key])) &&
-          dataDatum[key] !== "" &&
-          !NUMERIC_CATEGORICAL_ATTR.includes(key)
+            dataDatum[key] !== "" &&
+            !NUMERIC_CATEGORICAL_ATTR.includes(key)
             ? NUMERIC_ATTR
             : CATEGORICAL_ATTR;
         this.attrType[key] = tmpAttrType;
@@ -1071,12 +1070,12 @@ export default class Util {
     aniLeaf.marks.forEach((m: string) => {
       const tmpIdx: number = marksInOrder.indexOf(m);
       // if(Animation.allMarkAni.get(m) != undefined){
-        if (Animation.allMarkAni.get(m).startTime < minStartTime) {
-          minStartTime = Animation.allMarkAni.get(m).startTime;
-          targetIdx = tmpIdx;
-        }
+      if (Animation.allMarkAni.get(m).startTime < minStartTime) {
+        minStartTime = Animation.allMarkAni.get(m).startTime;
+        targetIdx = tmpIdx;
+      }
       // }
-     
+
     });
     let allCurrentMarks: string[] = [];
 
@@ -1210,7 +1209,7 @@ export default class Util {
     const tmpAttrCombs: string[] = attrCombs.map((x) => x.join(","));
     let combTargetAttrs = this.perm(targetAttrs);
     let combTargetAttrStrs: string[] = combTargetAttrs.map((x) => x.join(","));
-    for (let i = 0; i < tmpAttrCombs.length; ) {
+    for (let i = 0; i < tmpAttrCombs.length;) {
       let flag: boolean = false;
       for (let j = 0, len2 = combTargetAttrStrs.length; j < len2; j++) {
         if (tmpAttrCombs[i].includes(combTargetAttrStrs[j])) {
@@ -1321,6 +1320,15 @@ export default class Util {
     valueOrderRecord.forEach((valueSort: Set<string>, idx: number) => {
       result[idx] = [...valueSort];
     });
+    //OS
+    const osAttr: string[] = ['IOS', 'BlackBerry OS', 'Unknown', 'Android', 'Playstation', 'Other', 'Windows', 'SymbianOS'];
+    result.forEach((marks: string[]) => {
+      if (marks.length === osAttr.length) {
+        marks.sort((a: string, b: string) => {
+          return osAttr.indexOf(a) - osAttr.indexOf(b);
+        });
+      }
+    })
 
     let color_v: string[] = [];
     let position_v: string[] = [];
@@ -1550,5 +1558,31 @@ export default class Util {
 
     combi.sort((a, b) => a.length - b.length);
     return combi;
+  }
+  public static notAllAttr(marks: string[]) {
+    const collections: Map<string, {
+      rows: Set<string>,
+      cols: Set<string>
+    }> = new Map();
+    for (let mark of marks) {
+      const element = document.getElementById(mark);
+      const collectionAttr = element.getAttribute("collection");
+      if (!collectionAttr) {
+        continue;
+      }
+      const collection = JSON.parse(collectionAttr);
+      if (!collections.has(collection.id)) {
+        collections.set(collection.id, { rows: new Set(), cols: new Set() });
+      }
+      const collectionSet = collections.get(collection.id);
+      collectionSet.rows.add(collection.row);
+      collectionSet.cols.add(collection.col);
+    }
+    for (let [k, { rows, cols }] of collections) {
+      if (rows.size >= 2 && cols.size >= 2) {
+        return false;
+      }
+    }
+    return true;
   }
 }

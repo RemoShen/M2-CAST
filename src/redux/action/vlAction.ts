@@ -2,6 +2,15 @@ import KfItem from "../views/vl/kfItem";
 import { IActivatePlusBtn, ISize } from "../global-interfaces";
 import { IAction } from "./interfaces";
 
+// export const UPDATE_STATIC_MARKS: string = 'UPDATE_STATIC_MARKS';
+// export const updateStaticMarks = (sm: string[]) => {
+//     return {
+//         type: UPDATE_STATIC_MARKS,
+//         payload: {
+//             array: sm
+//         }
+//     } as IAction
+// }
 
 export const UPDATE_KEYFRAME_TRACKS: string = "UPDATE_KEYFRAME_TRACKS";
 export const updateKfTracks = (kt: Map<string, any>) => {
@@ -52,3 +61,13 @@ export const updateKfGroupSize = (s: ISize) => {
     },
   } as IAction;
 };
+
+// export const UPDATE_MARKS_IN_NEW_KFG: string = 'UPDATE_MARKS_IN_NEW_KFG';
+// export const updateMarksInNewKfg = (m: string[]) => {
+//     return {
+//         type: UPDATE_MARKS_IN_NEW_KFG,
+//         payload: {
+//             array: m
+//         }
+//     } as IAction
+// }

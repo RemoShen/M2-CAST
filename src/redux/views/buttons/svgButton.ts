@@ -269,6 +269,10 @@ export class SVGBtn {
       "pointerup",
       (e: PointerEvent) => (that.btnDown = false)
     );
+    document.addEventListener(
+      'pointerup',
+      (e: PointerEvent) => {that.btnDown = false}
+    )
 
     const strokeProps: any = {
       stroke: STROKE_COLOR,
@@ -404,7 +408,7 @@ export class SVGBtn {
 
     this.btnProps.events.forEach((btnEvent: IEvent) => {
       this.container.addEventListener(btnEvent.type, (e: PointerEvent) => {
-        btnEvent.func();
+        btnEvent.func(e);
       });
     });
     this.container.addEventListener("pointerdown", (e: PointerEvent) => {

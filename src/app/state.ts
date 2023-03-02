@@ -10,6 +10,14 @@ export interface IState {
  * re-render parts when the state changes
  */
 export class State implements IState {
+  public reset(changeChart: boolean): void {
+  }
+
+  /*
+   * each interaction node is an array of interaction records, each record contains the history value and current value,
+   * revert: rerender the history value in the record where the pointer points at then move the pointer to the previous record
+   * redo: move the pointer back to the next record and render the current value in the record
+   */
   static stateHistory: IInteractionRecord[][] = []; //each step might triger multiple actions, thus each step correspond to one Array<[actionType, stateAttrValue]>
   static stateHistoryIdx: number = -1;
   static tmpStateBusket: IInteractionRecord[] = [];

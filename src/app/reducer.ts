@@ -25,4 +25,5 @@ export default class Reducer {
     newActionVal: any
   ) {
   }
+
 }

@@ -5,7 +5,7 @@ import { NON_SKETCH_CLS } from "../../global-consts";
 import { store } from "../../store";
 import { IPlayerProps } from "./interfaces";
 import { NUMERIC_SLIDER, SLIDER_MIN_WIDTH } from "./slider-consts";
-import { toggleVideoMode, updatePreviewing } from "../../action/videoAction";
+import { updatePreviewing } from "../../action/videoAction";
 
 export class Player {
   static PLAY_BTN_ID: string = "playBtn";
@@ -52,6 +52,7 @@ export class Player {
 
   public createPlayer(): void {
     this.widget = document.createElement("div");
+    // this.widget.style.minWidth = (0.98 * window.innerWidth / 2).toString() + 'px';
     this.playBtnWrapper = document.createElement("div");
     this.playBtnWrapper.id = "playBtnWrapper";
     this.playBtnWrapper.className = `play-btn-wrapper ${NON_SKETCH_CLS}`;
@@ -229,19 +230,23 @@ export class Player {
         : videolayer.classList.add("ele-under"));
     if (store.getState().showVideo) {
       this.showPlayer();
+      this.currentTime = 0;
       this.playAnimation();
     } else {
       this.pauseAnimation();
+      this.currentTime = 0;
       this.hidePlayer();
     }
   }
 
   public playAnimation(timeRange: [number, number] = [0, this.totalTime]) {
-    console.log("time_total", this.totalTime, timeRange);
+    console.log("time_total", this.totalTime, timeRange, this.currentTime);
     (<HTMLInputElement>document.getElementById(Player.PLAY_BTN_ID)).checked =
       false;
+    //check current mode
     this.playing = true;
-    if (this.currentTime === timeRange[1]) {
+    
+    if (this.currentTime >= (timeRange[1] - 5) && this.currentTime <= (timeRange[1] + 5)) {
       this.currentTime = timeRange[0];
       //lottile animations
       if (store.getState().lottieAni) {
@@ -251,7 +256,6 @@ export class Player {
       this.currentTime =
         Math.floor(this.currentTime / (1000 / this.frameRate)) *
         (1000 / this.frameRate);
-      console.log("currenttime", this.currentTime);
     }
     this.playing = true;
     if (store.getState().lottieAni) {

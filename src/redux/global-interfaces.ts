@@ -81,8 +81,11 @@ export interface IKeyframeGroup {
   refValue?: string;
   id: number;
   aniId: string;
+  // parentObj: IKeyframeGroup | {} //keyframe group id
   children?: IKeyframeGroup[];
   keyframes?: IKeyframe[];
+  // numKf: number
+  // numGroup: number
   marks: string[];
   timingRef: string;
   delayIcon: boolean;

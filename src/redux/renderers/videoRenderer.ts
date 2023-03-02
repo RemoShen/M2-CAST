@@ -11,19 +11,6 @@ import { updateKfTracks } from "../action/vlAction";
 import { canis, ICanisSpec } from "../../app/core/canisGenerator";
 import { SuggestBox } from "../views/vl/suggestBox";
 import { resetKeyframeTracks } from "./renderer-tools";
-import { TXT_BUBBLE_CLS } from "../views/bubble/txtBubble";
-import {
-  BTN_CONTENT_TYPE_STR,
-  BTN_TYPE_PREVIEW,
-  CIRCLE_BTN,
-  DEFAULT_BTN_SIZE,
-  ISVGBtn,
-  MID_FONT,
-} from "../views/buttons/button-consts";
-import { NON_SKETCH_CLS } from "../global-consts";
-import { IAttrAndSpec } from "../global-interfaces";
-import { DARK_COLOR, LIGHT_COLOR } from "../views/menu/menu-consts";
-import { SVGBtn } from "../views/buttons/svgButton";
 
 export const videoRenderer = {
   toggleVideoMode: () => {
@@ -136,7 +123,6 @@ export const videoRenderer = {
     }
     // })
   },
-
   // renderPreviewBtns: () => {
   //     if (store.getState().suggestSpecs.length > 1) {
   //         console.log('rendering preview btns: ', store.getState().suggestSpecs);

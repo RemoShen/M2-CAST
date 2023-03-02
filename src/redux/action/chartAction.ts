@@ -1,6 +1,4 @@
-import { IAction } from "./interfaces";
-import { Animation, TimingSpec } from "canis_toolkit";
-import { store } from "../store";
+import { IAction, ManualStep } from "./interfaces";
 import { IDataItem, ISortDataAttr } from "../global-interfaces";
 import { IOrderInfo } from "../../util/markSelection";
 import { classifySelection, combineSelectStep } from "../../util/appTool";
@@ -46,17 +44,6 @@ export const updateSelection = (mIds: string[]) => {
   } as IAction;
 };
 
-export const UPDATE_SELECTION_FAKE: string = "UPDATE_SELECTION_REAL";
-export const updateSelectionFake = (mIds: string[]) => {
-  mIds = [...new Set(mIds)];
-  return {
-    type: UPDATE_SELECTION_FAKE,
-    payload: {
-      array: mIds,
-    },
-  } as IAction;
-};
-
 export const UPDATE_SELECT_MARKS: string = "UPDATE_SELECT_MARKS";
 export const updateSelectMarks = (mIds: string[]) => {
   return {
@@ -69,6 +56,8 @@ export const updateSelectMarks = (mIds: string[]) => {
 
 export const UPDATE_SELECT_MARKS_STEP: string = "UPDATE_SELECT_MARKS_STEP";
 export const updateSelectMarksStep = (mIds: string[]) => {
+  // let allPreviousSelectedMark = store.getState().selectMarksStep;
+  // const refSelect: string[][] = combineSelectStep(mIds);
   return {
     type: UPDATE_SELECT_MARKS_STEP,
     payload: {
@@ -76,15 +65,34 @@ export const updateSelectMarksStep = (mIds: string[]) => {
     },
   } as IAction;
 };
-export const UPDATE_SELECT_MARKS_STEP_FAKE: string = "UPDATE_SELECT_MARKS_STEP_FAKE";
-export const updateSelectMarksStepFake = (mIds: string[]) => {
+export const UPDATE_CLICK_TIME: string = "UPDATE_CLICK_TIME";
+export const updateClickTime = (mIds: number) => {
   return {
-    type: UPDATE_SELECT_MARKS_STEP_FAKE,
+    type: UPDATE_CLICK_TIME,
     payload: {
-      array: mIds,
+      number : mIds,
     },
   } as IAction;
 };
+export const UPDATE_SELECT_MODE: string = "UPDATE_SELECT_MODE";
+export const updateSlectMode = (mode: string) => {
+  return {
+    type: UPDATE_SELECT_MODE,
+    payload: {
+      string: mode,
+    },
+  }
+};
+export const UPDATE_MANUAL_SELECT: string = "UPDATE_MANUAL_SELECT";
+export const updateManualSelect = (marks: Set<string>, needComplete: boolean) => {
+  return {
+    type: UPDATE_MANUAL_SELECT,
+    payload: {
+      set: marks,
+      needComplete: needComplete
+    },
+  }
+}
 export const UPDATE_SUGGESTED_MARKS: string = "UPDATE_SUGGESTED_MARKS";
 export const updateSuggestedMarks = (sm: string[]) => {
   return {

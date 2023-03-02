@@ -38,7 +38,7 @@ export const vlReducer = (state: IState, action: IAction) => {
       //if os bar and link
       rootGroup.forEach((group: IKeyframeGroup) => {
         if(group.children != undefined){
-          if(group.children.length > 0 && group.keyframes.length === 0 && group.children[0].groupRef === 'Year'){
+          if(group.children.length > 0 && group.keyframes.length === 0 && (group.children[0].groupRef === 'Year' || group.children[0].groupRef === 'Month')){
             group.children.forEach((child) => {
               group.keyframes.push(child.keyframes[0]);
             })

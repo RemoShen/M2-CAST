@@ -30,13 +30,16 @@ export const SUGGEST: string = "suggest";
 export const ZOOM_OUT: string = "zoomOut";
 export const ZOOM_IN: string = "zoomIn";
 export const CUSTOM: string = "custom";
+export const CONFIRM_BTN: string = "confirm";
 
 //floating window
 export const TYPE_EXAMPLE: string = "exampleContainer"; //type of the floating window is example
+// export const TYPE_SPEC: string = 'SpecContainer';//type of the floating window is spec test
 export const CLICKABLE_AREA_CHART: string = "inputChart";
 export const CLICKABLE_AREA_PROJECT: string = "inputProject";
 
 export const MUSHROOM_CHART: string = "mushroom";
+// export const GANTT_CHART: string = 'gantt';
 export const OS_CHART: string = "mobileOS";
 export const PURCHASE_CHART: string = "purchases";
 export const DEMO_CHART: string = "demo";

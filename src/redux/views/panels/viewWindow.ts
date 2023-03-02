@@ -2,12 +2,14 @@ import "../../assets/style/panels/view-window.scss";
 import { player } from "../slider/player";
 import ResizablePanel from "./resizablePanel";
 import {
-  BIG_BTN_SIZE,
   BTN_CONTENT_TYPE_ICON,
   CIRCLE_BTN,
   ISVGBtn,
   PNT_DOWN_SIZE,
-  VOICE_ICON,
+  PREVIEW_ICON,
+  MID_BTN_SOZE,
+  MULTISELECT_ICON,
+  CONFIRM_ICON,
 } from "../buttons/button-consts";
 import { DARK_COLOR, LIGHT_COLOR } from "../menu/menu-consts";
 import { SVGBtn } from "../buttons/svgButton";
@@ -26,15 +28,18 @@ import { IViewBtnProp } from "./interfaces";
 import { ICoord } from "../../global-interfaces";
 import { NON_SKETCH_CLS } from "../../global-consts";
 import { jsTool } from "../../../util/jsTool";
-import { markSelection } from "../../../util/markSelection";
+import { toggleVideoMode } from "../../action/videoAction";
 import { store } from "../../store";
-import DivideWindow from "./divideWindow";
+import { markSelection } from "../../../util/markSelection";
+import { updateManualSelect, updateSlectMode } from "../../action/chartAction";
 
+export var multiSelectBtn: boolean = false;
 export default class ViewWindow {
   viewTitle: string;
   showTitle: boolean;
   view: HTMLDivElement;
   parentPanel: ResizablePanel;
+  eventTime: number
   constructor(title: string, showTitle: boolean) {
     this.viewTitle = title;
     this.showTitle = showTitle;
@@ -82,7 +87,6 @@ export default class ViewWindow {
         switch (titleText) {
           case KF_VIEW_TITLE:
             titleText = "Animation Specification"; //keyframe list
-            this.view.id = 'kfview0'
             break;
           case VIDEO_VIEW_TITLE:
             titleText = "Animation Preview";
@@ -131,15 +135,18 @@ export default class ViewWindow {
     this.createVideoLayer();
     this.createPlayerWidget();
     this.createZoomPanel();
+    this.createMultiSelectBtn();
+    this.createPreviewBtn();
     this.createConfirmBtn();
   }
-  public createConfirmBtn() {
-    const r: number = BIG_BTN_SIZE;
+
+  public createMultiSelectBtn() {
+    const r: number = MID_BTN_SOZE;
     const container = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "svg"
     );
-    container.classList.add("confirm-btn-container", NON_SKETCH_CLS);
+    container.classList.add("multiselect-btn-container", NON_SKETCH_CLS);
     this.view.appendChild(container);
     const buttonProps: ISVGBtn = {
       type: CIRCLE_BTN,
@@ -150,18 +157,30 @@ export default class ViewWindow {
       endFill: DARK_COLOR,
       innerContent: {
         type: BTN_CONTENT_TYPE_ICON,
-        content: VOICE_ICON,
+        content: MULTISELECT_ICON,
       },
       values: [],
       events: [
         {
-          type: "pointerup",
-          func: () => {
-            //interface 
-            const divideView: DivideWindow = new DivideWindow('divide spec', [['mark3']]);
-            divideView.createDivideView();
-            document.getElementById('kfview0').appendChild(divideView.view)
+          type: "pointerdown",
+          func: (e: any) => {
+            if (e.pointerType === 'touch') {
+              console.log('mudown', e)
+              store.dispatchSystem(updateSlectMode('manual'));
+            }
 
+          },
+        },
+        {
+          type: "pointerup",
+          func: (e: any) => {
+            if (e.pointerType === 'touch') {
+              console.log('muup', e)
+              const marksToconfirm: string[][] = [[...store.getState().manualSelect.marks].sort()];
+              store.dispatchSystem(updateManualSelect(store.getState().manualSelect.marks, false));
+              markSelection.beginSuggest(marksToconfirm);
+              store.dispatchSystem(updateSlectMode('intelligent'));
+            }
           },
         },
       ],
@@ -169,13 +188,89 @@ export default class ViewWindow {
     const btn: SVGBtn = new SVGBtn(container, true, buttonProps);
     container.appendChild(btn.container);
   }
+  public createPreviewBtn() {
+    const r: number = MID_BTN_SOZE;
+    const container = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    container.classList.add("preview-btn-container", NON_SKETCH_CLS);
+    this.view.appendChild(container);
+    const buttonProps: ISVGBtn = {
+      type: CIRCLE_BTN,
+      center: { x: r + PNT_DOWN_SIZE, y: r + PNT_DOWN_SIZE },
+      r: r,
+      appearAni: false,
+      startFill: LIGHT_COLOR,
+      endFill: DARK_COLOR,
+      innerContent: {
+        type: BTN_CONTENT_TYPE_ICON,
+        content: PREVIEW_ICON,
+      },
+      values: [],
+      events: [
+        {
+          type: "click",
+          func: () => {
+            if (player.shown) {
+              store.dispatchSystem(toggleVideoMode(false));
+            } else {
+              store.dispatchSystem(toggleVideoMode(true));
+            }
 
+          }
+        }
+      ],
+    };
+    const btn: SVGBtn = new SVGBtn(container, true, buttonProps);
+    container.appendChild(btn.container);
+  }
+  public createConfirmBtn() {
+    const r: number = MID_BTN_SOZE;
+    const container = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    container.classList.add("confirm-btn-container", NON_SKETCH_CLS);
+    this.view.appendChild(container);
+    const buttonProps: ISVGBtn = {
+      type: CIRCLE_BTN,
+      center: { x: r + PNT_DOWN_SIZE, y: r + PNT_DOWN_SIZE },
+      r: r,
+      appearAni: false,
+      startFill: '#38B12F',
+      endFill: LIGHT_COLOR,
+      innerContent: {
+        type: BTN_CONTENT_TYPE_ICON,
+        content: CONFIRM_ICON,
+      },
+      values: [],
+      events: [
+        {
+          type: "click",
+          func: () => {
+            document.getElementsByClassName('confirm-btn-container')[0].setAttribute('style', 'display:none')
+            document.getElementsByClassName('confirm-btn-container')[0].classList.add('pl')
+            document.getElementsByClassName('preview-btn-container')[0].classList.remove('dis')
+            document.getElementsByClassName('multiselect-btn-container')[0].classList.remove('dis')
+            document.getElementsByClassName('revert-icon')[0].classList.remove('dis');
+            const marksToconfirm: string[][] = [[...store.getState().manualSelect.marks].sort()];
+            store.dispatchSystem(updateManualSelect(store.getState().manualSelect.marks, false))
+            markSelection.beginSuggest(marksToconfirm);
+            store.dispatchSystem(updateSlectMode('intelligent'));
+          },
+        },
+      ],
+    };
+    const btn: SVGBtn = new SVGBtn(container, true, buttonProps);
+    container.appendChild(btn.container);
+  }
   public createZoomPanel() {
     const zoomPanel: HTMLDivElement = document.createElement("div");
     zoomPanel.innerHTML = "100%";
     zoomPanel.id = ZOOM_PANEL_ID;
     zoomPanel.className = `zoom-panel ${NON_SKETCH_CLS}`;
-    zoomPanel.hidden = true;
+    zoomPanel.hidden = true; //hidden 
     this.view.appendChild(zoomPanel);
   }
   public createPlayerWidget(): void {
@@ -188,6 +283,7 @@ export default class ViewWindow {
   public createVideoLayer(): void {
     const container: HTMLDivElement = document.createElement("div");
     container.id = VIDEO_VIEW_CONTENT_ID;
+    // container.className = `${ViewContent.VIEW_CONTENT_CLS} hide-ele`;
     container.className = `${VIEW_CONTENT_CLS} ele-under`;
     this.view.appendChild(container);
   }
@@ -201,6 +297,38 @@ export default class ViewWindow {
         iconClass: "zoom-icon",
       })
     );
+    //create zooming slider
+
+    // const slider: Slider = new Slider([ViewWindow.MIN_ZOOM_LEVEL, ViewWindow.MAX_ZOOM_LEVEL], ViewWindow.MAX_ZOOM_LEVEL);
+    // slider.createSlider()
+    // slider.callbackFunc = (zl: number) => {
+    //     Reducer.triger(action.KEYFRAME_ZOOM_LEVEL, zl);
+    // };
+    // toolContainer.appendChild(this.createBtn({
+    //     title: 'Zoom Out',
+    //     clickEvtType: ViewToolBtn.CUSTOM,
+    //     clickEvt: () => {
+    //         if (store.getState().kfZoomLevel - ViewWindow.ZOOM_STEP >= ViewWindow.MIN_ZOOM_LEVEL) {
+    //             slider.moveSlider(store.getState().kfZoomLevel - ViewWindow.ZOOM_STEP);
+    //         } else {
+    //             slider.moveSlider(ViewWindow.MIN_ZOOM_LEVEL);
+    //         }
+    //     },
+    //     iconClass: 'zoom-out-icon'
+    // }));
+    // toolContainer.appendChild(slider.sliderContainer);
+    // toolContainer.appendChild(this.createBtn({
+    //     title: 'Zoom In',
+    //     clickEvtType: ViewToolBtn.CUSTOM,
+    //     clickEvt: () => {
+    //         if (store.getState().kfZoomLevel + ViewWindow.ZOOM_STEP <= ViewWindow.MAX_ZOOM_LEVEL) {
+    //             slider.moveSlider(store.getState().kfZoomLevel + ViewWindow.ZOOM_STEP);
+    //         } else {
+    //             slider.moveSlider(ViewWindow.MAX_ZOOM_LEVEL);
+    //         }
+    //     },
+    //     iconClass: 'zoom-in-icon'
+    // }));
     return toolContainer;
   }
 
@@ -214,4 +342,5 @@ export default class ViewWindow {
     const btn: HTMLSpanElement = new ViewToolBtn().btn(props);
     return btn;
   }
+
 }

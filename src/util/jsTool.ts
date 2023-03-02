@@ -69,7 +69,7 @@ export const jsTool = {
     }
     if (tracePointsLength < 10) {
       switch (
-        tracePoints[0].length //sketch canvas length
+      tracePoints[0].length //sketch canvas length
       ) {
         case 5:
           return "FADE";
@@ -358,12 +358,79 @@ export const jsTool = {
       } else return "axis_left";
     } else return "axis_left";
   },
-  isLLineShape: (path: ICoord[]) => {},
+  isLLineShape: (path: ICoord[]) => { },
   isLasso: (path: ICoord[], thr: number) => {
+
+    let top = -Infinity, bottom = Infinity, left = Infinity, right = -Infinity;
+    for (let i of path) {
+      top = Math.max(top, i.y);
+      bottom = Math.min(bottom, i.y);
+      left = Math.min(left, i.x);
+      right = Math.max(right, i.x);
+    }
+
+    const boundaryWidth = right - left;
+    const boundaryHeight = top - bottom;
+
+    console.warn(boundaryHeight);
+    console.warn(boundaryWidth);
+
     const isClosed: boolean = jsTool.isClosedShape(path);
     const isAlmostClosed: boolean =
-      jsTool.pointDist(path[0], path[path.length - 1]) < thr;
-    return isClosed || isAlmostClosed;
+      // jsTool.pointDist(path[0], path[path.length - 1]) < thr;
+      jsTool.pointDist(path[0], path[path.length - 1]) < Math.max(thr, Math.hypot(boundaryHeight, boundaryWidth) * .5);
+
+    const l = path.length;
+    // const smoothed = new Array<ICoord>;
+    // smoothed.push(path[0]);
+    // for (let i = 1; i < l - 1; i++) {
+    //   smoothed.push(Icoord({x: 1, y : 2}))
+    // }
+
+    const BINS = 100;
+
+    let histogram = new Array<number>(BINS);
+    for (let i = 0; i < BINS; i++) {
+      histogram[i] = 0;
+    }
+
+    for (let i = 1; i < l; i++) {
+      let angle = Math.atan2(path[i].y - path[i - 1].y, path[i].x - path[i - 1].x);
+      angle = (angle / Math.PI + 1) / 2 * (BINS - 1);
+      let index = Math.floor(Math.min(BINS - 1, Math.max(0, angle)));
+      histogram[index]++;
+    }
+
+    for (let i = 0; i < 100; i++) {
+      let blurred = new Array<number>(BINS);
+      for (let j = 0; j < BINS; j++) {
+        blurred[j] =
+          0.25 * histogram[j - 1 == -1 ? BINS - 1 : j - 1] +
+          0.5 * histogram[j] +
+          0.25 * histogram[j + 1 == BINS ? 0 : j + 1];
+      }
+      histogram = blurred;
+    }
+
+    let variance = 0;
+    let mean = 0;
+
+    for (let i of histogram) {
+      mean += i;
+    }
+    mean /= BINS;
+
+    for (let i of histogram) {
+      variance += (i - mean) * (i - mean);
+    }
+    variance /= BINS;
+
+    let cov = Math.sqrt(variance) / mean
+
+    console.log(`COV: ${cov}`);
+    // console.log(histogram);
+
+    return (isClosed || isAlmostClosed) && cov < 0.83;
   }, //返回lasso选择是否成功
   isAxis: (path: ICoord[]) => {
     const isdomain: string = jsTool.isLineShape(path);
@@ -374,7 +441,7 @@ export const jsTool = {
   pointDist: (pnt1: ICoord, pnt2: ICoord) => {
     return Math.sqrt(
       (pnt1.x - pnt2.x) * (pnt1.x - pnt2.x) +
-        (pnt1.y - pnt2.y) * (pnt1.y - pnt2.y)
+      (pnt1.y - pnt2.y) * (pnt1.y - pnt2.y)
     );
   },
   vecCrossMul: (v1: ICoord, v2: ICoord) => {
@@ -494,9 +561,13 @@ export const jsTool = {
   },
   svg2url: (svgElement: HTMLElement) => {
     const svgString = svgElement.outerHTML;
-    const svg = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    let svg = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(svg);
-    return url;
+    svg = null;
+    return url + "#" + Math.random();
+    // const url = "data:image/svg+xml;base64," + btoa(svgString) + "#" + Math.floor(Math.random() * 1000000000).toString();
+    // console.warn(url);
+    // return url;
   },
   formatTime: (time: number) => {
     const minute: number = Math.floor(time / 60000);
@@ -604,13 +675,13 @@ export const jsTool = {
         return new Proxy(copiedObj, {
           get(target, p, receiver) {
             if (p === "clear") {
-              return () => {};
+              return () => { };
             }
             if (p === "delete") {
-              return () => {};
+              return () => { };
             }
             if (p === "set") {
-              return () => {};
+              return () => { };
             }
             let ret = Reflect.get(target, p);
             if (typeof ret === "function") {
@@ -636,13 +707,13 @@ export const jsTool = {
         return new Proxy(copiedObj, {
           get(target, p, receiver) {
             if (p === "clear") {
-              return () => {};
+              return () => { };
             }
             if (p === "delete") {
-              return () => {};
+              return () => { };
             }
             if (p === "add") {
-              return () => {};
+              return () => { };
             }
             let ret = Reflect.get(target, p);
             if (typeof ret === "function") {

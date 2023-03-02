@@ -42,41 +42,50 @@ import CanisGenerator, {
 import Util from "../../app/core/util";
 import { Animation, TimingSpec } from "canis_toolkit";
 import { StateModifier } from "../../app/app-utils";
+import { Numeric } from "d3";
 import Suggest from "../../app/core/suggest";
+import { filter } from "lodash";
+import { jsTool } from "../../util/jsTool";
 
 export const canisReducer = (state: IState, action: IAction) => {
   if (typeof state !== "undefined") {
     if (typeof state.spec !== "undefined") {
       let specCopy: ICanisSpec = JSON.parse(JSON.stringify(state.spec));
-      if(Suggest.allPaths.length === 1){
+      if (Suggest.allPaths.length === 1) {
         const currentSelectStep: string[][] = store.getState().selectMarksStep;
         const AllDataKfMarks: string[] =
-        Util.separateDataAndNonDataMarks([...Util.filteredDataTable.keys()]).dataMarks;
+          Util.separateDataAndNonDataMarks([...Util.filteredDataTable.keys()]).dataMarks;
+        // const NeedToRemove: boolean = jsTool.ifRemove(currentSelectStep);
         currentSelectStep.forEach((selectOneStep: string[]) => {
           let ifDataMark: boolean = true;
           selectOneStep.forEach((mark: string) => {
-            if(!AllDataKfMarks.includes(mark)){
+            if (!AllDataKfMarks.includes(mark)) {
               ifDataMark = false;
             }
           });
-          
-          if(ifDataMark){
+
+          if (ifDataMark) {
             let selector: string = '';
+            let markId: number[] = [];
             selectOneStep.forEach((mark: string) => {
-              selector += `#${mark}, `
+              markId.push(parseInt(mark.split('mark')[1]));
+            })
+            markId.sort((a, b) => a - b);
+            markId.forEach((id: number) => {
+              selector += `#mark${id}, `
             })
             let pos: number = -1;
             selector = selector.substring(0, selector.length - 2);
             specCopy.animations.forEach((animation: IAnimationSpec, index: number) => {
-              if(selectOneStep.length < 5){
-                if(selector === animation.selector){
+              if (selectOneStep.length < 5) {
+                if (selector === animation.selector) {
                   pos = index;
                 }
-              }  
+              }
             });
-            if(pos != -1){
+            if (pos != -1) {
               specCopy.animations.splice(pos, 1);
-            }            
+            }
           }
         });
       }
@@ -95,6 +104,7 @@ export const canisReducer = (state: IState, action: IAction) => {
           }
           return state;
         case UPDATE_SPEC_ANIMATIONS:
+          // const oriSpec = JSON.parse(JSON.stringify(state.spec));
           specCopy.animations = action.payload.array;
           return { ...state, spec: specCopy };
         case RESET_SPEC:
@@ -215,6 +225,7 @@ export const canisReducer = (state: IState, action: IAction) => {
             }
           });
           return { ...state, spec: specCopy };
+        // state.spec = { ...state.spec, animations: animations };
         case REMOVE_DELAY_BETWEEN_KF:
           specCopy.animations.forEach((a: IAnimationSpec) => {
             if (

@@ -13,9 +13,9 @@ class Tip {
     this.container.style.left = `calc(50% - ${
       this.container.clientWidth / 2
     }px)`;
-    setTimeout(() => {
-      this.hide();
-    }, Tip.READ_SPEED * this.content.split(" ").length);
+    // setTimeout(() => {
+    //   this.hide();
+    // }, Tip.READ_SPEED * this.content.split(" ").length);
   }
   hide() {
     this.container.classList.add("hide-ele");

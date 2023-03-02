@@ -43,11 +43,7 @@ export const chartRenderer = {
 
   updateSelection: () => {
     console.log("current selection is: ", store.getState().selection);
-    store.dispatch(updateSelectMarks(store.getState().selection));
-  },
-  updateSelectionFake: () => {
-    console.log("current selection is: ", store.getState().selection);
-    store.dispatch(updateSelectMarks(store.getState().selection));
+    store.dispatchSystem(updateSelectMarks(store.getState().selection));
   },
 
   renderSelectionFrame: () => {
@@ -87,6 +83,14 @@ export const chartRenderer = {
         const chartContentTrans: ICoord = Util.extractTransNums(
           chartContent.getAttributeNS(null, "transform")
         );
+
+        //set the highlightSelectionFrame
+        // updateProps(selectionBox, {
+        //     x: `${(minX * store.getState().chartScaleRatio - 5 + chartContentTrans.x)}`,
+        //     y: ((minY * store.getState().chartScaleRatio - 5 + chartContentTrans.y)).toString(),
+        //     width: ((maxX - minX) * store.getState().chartScaleRatio + 10).toString(),
+        //     height: ((maxY - minY) * store.getState().chartScaleRatio + 10).toString()
+        // })
       }
     }
   },
@@ -113,11 +117,13 @@ export const chartRenderer = {
   },
 
   renderMarksToConfirm: () => {
+    // let suggestionBox: HTMLElement = document.getElementById(SUGGESTION_FRAME);
     let allMarksToConfirm: string[] = [];
     store.getState().marksToConfirm.forEach((markGroup: string[]) => {
       allMarksToConfirm = [...allMarksToConfirm, ...markGroup];
     });
     if (store.getState().marksToConfirm.length === 0) {
+      //there are no marks to be confirmed
       Array.from(document.getElementsByClassName(SUGGESTION_FRAME_CLS)).forEach(
         (sf: HTMLElement) => {
           sf.remove();

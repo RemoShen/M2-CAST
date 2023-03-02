@@ -5,6 +5,7 @@ import { canisReducer } from "./canisReducer";
 import { chartReducer } from "./chartReducer";
 import { videoReducer } from "./videoReducer";
 import { vlReducer } from "./vlReducer";
+import { voiceReducer } from "./voiceReducer";
 
 const combineReducers = (reducers: {
   [key: string]: (state: IState, action: IAction) => {};
@@ -20,6 +21,7 @@ const combineReducers = (reducers: {
 
 export const reducer = combineReducers({
   app: appReducer,
+  voice: voiceReducer,
   chart: chartReducer,
   canis: canisReducer,
   vl: vlReducer,

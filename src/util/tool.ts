@@ -144,9 +144,8 @@ export const enlargeMarks = (
       txtCover.setAttributeNS(
         null,
         "y",
-        `${
-          parseFloat(m.getAttributeNS(null, "y")) -
-          txtBBox.height / store.getState().kfZoomLevel
+        `${parseFloat(m.getAttributeNS(null, "y")) -
+        txtBBox.height / store.getState().kfZoomLevel
         }`
       );
       txtCover.setAttributeNS(
@@ -222,7 +221,7 @@ export const calKfZoomLevel = () => {
   }
   return Math.floor(
     (currentZoomNum - MIN_ZOOM_LEVEL) /
-      ((MAX_ZOOM_LEVEL - MIN_ZOOM_LEVEL) / CHART_THUMBNAIL_ZOOM_LEVEL)
+    ((MAX_ZOOM_LEVEL - MIN_ZOOM_LEVEL) / CHART_THUMBNAIL_ZOOM_LEVEL)
   );
 };
 
@@ -278,7 +277,6 @@ export const detectDownArea = (pnt: ICoord) => {
   }
   return result;
 };
-
 export const scaleChartContent = (chartScale: number) => {
   // const chartScale: number = store.getState().chartScaleRatio;
   const defaultChartScale: number = store.getState().defaultChartScaleRatio;
@@ -286,25 +284,71 @@ export const scaleChartContent = (chartScale: number) => {
     .getElementById(CHART_VIEW_CONTENT_ID)
     .querySelector("#chartContent");
   const transform: string = chartG.getAttributeNS(null, "transform");
-  if (transform.indexOf("scale") >= 0) {
-    const transformStrs: string[] = transform.split("scale");
-    chartG.setAttributeNS(
-      null,
-      "transform",
-      `${transformStrs[0]}scale(${chartScale})`
-    );
-  } else {
-    chartG.setAttributeNS(
-      null,
-      "transform",
-      `${transform} scale(${chartScale})`
-    );
-  }
-  document.getElementById(ZOOM_PANEL_ID).innerHTML = `${
-    Math.floor((chartScale / defaultChartScale) * 10000) / 100
-  } % `;
-};
+  const scaleRatio: number = Math.floor((chartScale / defaultChartScale) * 10000) / 100;
+  if (scaleRatio > 70 && scaleRatio < 250) {
+    if (transform.indexOf("scale") >= 0) {
+      const transformStrs: string[] = transform.split("scale")[0].split("translate");
+      const values = transformStrs[1].match(/\(([^)]*)\)/g);
+      const transValue: string = values[0].replace(/[\(\)]/g, "");
+      const transBlocks: string[] = transValue.split(',');
+      const translateX: number = parseFloat(transBlocks[0]);
+      const translateY: number = parseFloat(transBlocks[1]);
 
+      chartG.setAttributeNS(
+        null,
+        "transform",
+        `translate(${translateX},${translateY}) scale(${chartScale})`
+      );
+    } else {
+      chartG.setAttributeNS(
+        null,
+        "transform",
+        `${transform} scale(${chartScale})`
+      );
+    }
+
+  }
+  document.getElementById(ZOOM_PANEL_ID).innerHTML = `${Math.floor((chartScale / defaultChartScale) * 10000) / 100
+    } % `;
+};
+export const translateSvgChart = (posi: ICoord, isDiff: boolean) => {
+  const chartG: HTMLElement = document.getElementById("chartContent");
+  if (chartG) {
+    let targetTransX: number = posi.x;
+    let targetTransY: number = posi.y;
+    const transformStr: string = chartG.getAttributeNS(null, "transform");
+    const values = transformStr.match(/\(([^)]*)\)/g);
+    const transValue: string = values[0].replace(/[\(\)]/g, "");
+    const transValueXY: string[] = transValue.split(' ');
+    const tranEndX: string = transValueXY[4];
+    const tranEndY: string = transValueXY[5];
+    const scaleX: string = transValueXY[0];
+    const scaleY: string = transValueXY[3];
+    if (
+      transformStr &&
+      typeof transformStr !== "undefined" &&
+      transformStr !== ""
+    ) {
+     
+      const initTrans: string = chartG.getAttributeNS(null, "init_transform");
+      if (!initTrans) {
+        chartG.setAttributeNS(null, "init_transform", transValue);
+      }
+      const transBlocks: string[] = transValue.split(",");
+      targetTransX = isDiff ? parseFloat(tranEndX) + posi.x : posi.x;
+      targetTransY = isDiff ? parseFloat(tranEndY) + posi.y : posi.y;
+      chartG.setAttribute(
+        "transform",
+        `matrix(${parseFloat(scaleX)}, ${0}, ${0}, ${parseFloat(scaleY)}, ${targetTransX}, ${targetTransY})`
+      )
+    } else {
+      chartG.setAttribute(
+        "transform",
+        `matrix(${parseFloat(scaleX)}, ${0}, ${0}, ${parseFloat(scaleY)}, ${targetTransX}, ${targetTransY})`
+      )
+    }
+  }
+}
 export const translateChart = (posi: ICoord, isDiff: boolean) => {
   const chartG: HTMLElement = document.getElementById("chartContent");
   if (chartG) {
@@ -318,19 +362,24 @@ export const translateChart = (posi: ICoord, isDiff: boolean) => {
     ) {
       const values = transformStr.match(/\(([^)]*)\)/g);
       const transValue: string = values[0].replace(/[\(\)]/g, "");
+      const transValueXY: string[] = transValue.split(' ');
+      const tranEndX: string = transValueXY[4];
+      const tranEndY: string = transValueXY[5];
       const initTrans: string = chartG.getAttributeNS(null, "init_transform");
       if (!initTrans) {
         chartG.setAttributeNS(null, "init_transform", transValue);
       }
       const transBlocks: string[] = transValue.split(",");
-      targetTransX = isDiff ? parseFloat(transBlocks[0]) + posi.x : posi.x;
-      targetTransY = isDiff ? parseFloat(transBlocks[1]) + posi.y : posi.y;
+      targetTransX = isDiff ? parseFloat(tranEndX) + posi.x : posi.x;
+      targetTransY = isDiff ? parseFloat(tranEndY) + posi.y : posi.y;
+      // chartG.style.transform = `matrix(1, 0, 0, 1, ${targetTransX}, ${targetTransY}))`
       chartG.setAttributeNS(
         null,
         "transform",
         `translate(${targetTransX}, ${targetTransY}) scale${values[1]}`
       );
     } else {
+      // chartG.style.transform = `matrix(1, 0, 0, 1, ${targetTransX}, ${targetTransY}))`
       chartG.setAttributeNS(
         null,
         "transform",
@@ -348,12 +397,16 @@ export const scaleChart = (scaleNum: number, touchPnt: ICoord) => {
       x: touchPnt.x * (0 - scaleNum),
       y: touchPnt.y * (0 - scaleNum),
     };
-
+    const chartScale: number = scaleNum + store.getState().chartScaleRatio;
+    const defaultChartScale: number = store.getState().defaultChartScaleRatio;
+    const scaleRatio: number = Math.floor((chartScale / defaultChartScale) * 10000) / 100;
     //do translate and scale
-    translateChart(transValue, true);
-    store.dispatch(
-      updateChartScale(scaleNum + store.getState().chartScaleRatio)
-    );
+    if (scaleRatio > 70 && scaleRatio < 250) {
+      store.dispatchSystem(
+        updateChartScale(scaleNum + store.getState().chartScaleRatio)
+      );
+      translateChart(transValue, true);
+    }
   }
 };
 
@@ -371,10 +424,9 @@ export const resetChartScaleAndTrans = () => {
     chartG.setAttributeNS(
       null,
       "transform",
-      `translate(${transValue}) scale(${
-        store.getState().defaultChartScaleRatio
+      `translate(${transValue}) scale(${store.getState().defaultChartScaleRatio
       })`
     );
-    store.dispatch(updateChartScale(store.getState().defaultChartScaleRatio));
+    store.dispatchSystem(updateChartScale(store.getState().defaultChartScaleRatio));
   }
 };

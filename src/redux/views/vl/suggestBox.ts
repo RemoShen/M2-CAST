@@ -26,13 +26,11 @@ import {
   updateActivatePlusBtn,
   updateKfGroupSize,
 } from "../../action/vlAction";
-import PlusBtn from "./plusBtn";
 import { createSvgElement, translateEle } from "../../../util/svgManager";
 import { dragging } from "../panels/interactions";
-import { toggleVideoMode, updatePreviewing } from "../../action/videoAction";
+import { updatePreviewing } from "../../action/videoAction";
 import { ICanisSpec } from "../../../app/core/canisGenerator";
 import AniMIL from "../../../mil/AniMIL";
-import { player } from "../slider/player";
 
 interface IOptionInfo {
   kfIdx: number;
@@ -169,8 +167,40 @@ export class SuggestBox {
       this.numShown = SuggestBox.SHOWN_NUM;
       this.preMenuWidth = this.menuWidth;
       this.menuWidth = SuggestBox.MENU_WIDTH;
+      // this.suggestMenu = new SuggestMenu();
+      // console.log('going to create suggest menu: ', this.boxWidth, this.kfWidth, this.kfHeight)
+      // this.suggestMenu.createMenu({ x: this.boxWidth, y: this.kfHeight / 2 + SuggestBox.PADDING }, this);
+      // this.container.appendChild(this.suggestMenu.container);
     }
 
+    // const bgLayerBBox: DOMRect = document.getElementById(KF_FG_LAYER).getBoundingClientRect();//fixed
+    // const preKfBBox: DOMRect = this.kfBeforeSuggestBox.container.getBoundingClientRect();//fixed
+    // const containerPosi: ICoord = {
+    //     x: (preKfBBox.right - bgLayerBBox.left) / store.getState().kfZoomLevel,
+    //     y: (preKfBBox.top - bgLayerBBox.top) / store.getState().kfZoomLevel
+    // }
+    // this.container.setAttributeNS(null, 'transform', `translate(${containerPosi.x}, ${containerPosi.y})`);
+    // this.createOptionClip();
+
+    // const bg: SVGRectElement = <SVGRectElement>createSvgElement({
+    //     tag: 'rect', para: {
+    //         width: this.boxWidth,
+    //         height: (this.kfHeight + 2 * SuggestBox.PADDING) * this.numShown,
+    //         fill: '#c9caca',
+    //         stroke: '#676767',
+    //         rx: GROUP_RX
+    //     }, flag: true
+    // })
+    // this.container.appendChild(bg);
+
+    // this.itemContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    // this.itemContainer.style.clipPath = `url(#${SuggestBox.CLIP_ID})`;
+    // this.bindTouchEvts();
+    // this.container.appendChild(this.itemContainer);
+    // for (let i = 0; i < this.options.length; i++) {
+    //     this.options[i].updateTrans(i);
+    //     this.itemContainer.appendChild(this.options[i].container);
+    // }
 
     this.menu = new SuggestMenu(
       {
@@ -409,7 +439,7 @@ export class SuggestBox {
         allSuggestedPaths = tmpAllPaths;
         preStepIdx = stepIdx;
       }
-      store.dispatchSystem(updateSelectMarks(marksToAdd));
+      store.dispatchSystem(updateSelectMarks(marksToAdd));//fixed
     }
     const nextUniqueKfIdx: number = Suggest.findNextUniqueKf(
       allSuggestedPaths,
@@ -418,6 +448,8 @@ export class SuggestBox {
     SuggestBox.preUniqueIdx = SuggestBox.currentUniqueIdx;
     SuggestBox.currentUniqueIdx = nextUniqueKfIdx;
     if (nextUniqueKfIdx === -1) {
+      // const selectedMarks = store.getState().activatePlusBtn.selection
+      // Suggest.pathToSpec(allSuggestedPaths[0], startKf.aniId, selectedMarks, startKf.parentObj.marksThisAni(), suggestOnFirstKf, false);
     } else {
       //render kfs before
       for (let j = preStepIdx + 1; j < nextUniqueKfIdx; j++) {
@@ -471,6 +503,7 @@ export class SuggestBox {
         nextUniqueKfIdx,
         suggestOnFirstKf
       );
+      // transX += (suggestBox.boxWidth * store.getState().kfZoomLevel + suggestBox.menuWidth);
       let transStartKf: KfItem =
         typeof lastKf === "undefined" ? startKf : lastKf;
       startKf.parentObj.translateGroup(
@@ -486,6 +519,7 @@ export class SuggestBox {
             suggestBox.boxWidth + SuggestBox.PADDING + suggestBox.menuWidth,
         }
       );
+      // startKf.parentObj.translateGroup(transStartKf, transX, false, false, false, { lastItem: false, extraWidth: suggestBox.boxWidth + SuggestBox.PADDING + suggestBox.menuWidth });
 
       //update the container slider
       const rootGroupBBox: DOMRect = document
@@ -575,6 +609,10 @@ export class SuggestBox {
     });
   }
 }
+
+/**
+ * 底部推荐窗口右侧的滑动提示
+ */
 export class SuggestMenu {
   static MENU_WIDTH: number = 20;
   static MENU_ICON_COLOR: string = "#e5e5e5";
@@ -649,6 +687,15 @@ export class SuggestMenu {
       flag: true,
     });
 
+    // document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    // // dot.classList.add('clickable-component', 'normal-btn');
+    // // if (idx === 0) {
+    // //     dot.classList.add('clickable-component', 'highlight-btn');
+    // // }
+    // dot.setAttributeNS(null, 'fill', SuggestMenu.MENU_ICON_COLOR);
+    // dot.setAttributeNS(null, 'r', `${SuggestMenu.BTN_SIZE / 2 - 6}`);
+    // dot.setAttributeNS(null, 'cx', `${SUGGEST_MENU_RX + SuggestMenu.BTN_SIZE / 2}`);
+    // dot.setAttributeNS(null, 'cy', `${SuggestMenu.BTN_SIZE + SuggestMenu.PADDING * 3 + SuggestMenu.DOT_SIZE / 2 + (SuggestMenu.DOT_SIZE + 2 * SuggestMenu.PADDING) * idx}`);
 
     return dot;
   }
@@ -656,6 +703,8 @@ export class SuggestMenu {
 
 export class OptionItem {
   static PADDING: number = 6;
+  // static TEXT_PANEL_WIDTH: number = 60;
+
   public container: SVGGElement;
   public optionKf: KfItem;
   public marksThisOption: string[];
@@ -674,6 +723,7 @@ export class OptionItem {
       optionInfo.kfWidth,
       optionInfo.kfHeight
     );
+    // const text: SVGTextElement = this.createText(optionInfo.attrs, optionInfo.values, optionInfo.ordering);
     const bg: SVGRectElement = <SVGRectElement>createSvgElement({
       tag: "rect",
       para: {
@@ -687,6 +737,8 @@ export class OptionItem {
     });
     this.container.appendChild(bg);
     this.container.appendChild(this.optionKf.container);
+    // this.container.appendChild(text);
+
     this.container.onclick = () => {
       this.clickItem();
     };
@@ -720,6 +772,7 @@ export class OptionItem {
         previousKfs: [],
       };
       store.dispatchSystem(updateActivatePlusBtn(currentActionInfo));
+      // store.dispatchSystem(updatePreviewing(null, { charts: [], animations: [] }, false, Suggest.allPaths.length !== 1));
     }
   }
 
@@ -736,6 +789,40 @@ export class OptionItem {
       })`
     );
   }
+
+  // public createText(attrs: string[], values: string[], ordering?: { attr: string, order: string }): SVGTextElement {
+  //     const text: SVGTextElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  //     text.setAttributeNS(null, 'transform', `translate(${this.optionKf.kfWidth + 2 * OptionItem.PADDING}, ${3 * OptionItem.PADDING})`)
+  //     text.classList.add('monospace-font', 'small-font');
+  //     if (typeof ordering === 'undefined') {
+  //         attrs.forEach((aName: string, idx: number) => {
+  //             const aNameTspan: SVGTSpanElement = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+  //             aNameTspan.innerHTML = `${aName}:`;
+  //             aNameTspan.setAttributeNS(null, 'font-weight', 'bold');
+  //             aNameTspan.setAttributeNS(null, 'x', '0');
+  //             aNameTspan.setAttributeNS(null, 'y', `${idx * 38}`);
+  //             text.appendChild(aNameTspan);
+  //             const aValueTspan: SVGTSpanElement = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+  //             aValueTspan.innerHTML = values[idx];
+  //             aValueTspan.setAttributeNS(null, 'x', '0');
+  //             aValueTspan.setAttributeNS(null, 'y', `${idx * 38 + 16}`);
+  //             text.appendChild(aValueTspan);
+  //         })
+  //     } else {
+  //         const aNameTspan: SVGTSpanElement = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+  //         aNameTspan.innerHTML = `${ordering.attr}:`;
+  //         aNameTspan.setAttributeNS(null, 'font-weight', 'bold');
+  //         aNameTspan.setAttributeNS(null, 'x', '0');
+  //         aNameTspan.setAttributeNS(null, 'y', '0');
+  //         text.appendChild(aNameTspan);
+  //         const aValueTspan: SVGTSpanElement = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+  //         aValueTspan.innerHTML = `${ordering.order}`;
+  //         aValueTspan.setAttributeNS(null, 'x', '0');
+  //         aValueTspan.setAttributeNS(null, 'y', '16');
+  //         text.appendChild(aValueTspan);
+  //     }
+  //     return text;
+  // }
 }
 
 export let suggestBox: SuggestBox = new SuggestBox();

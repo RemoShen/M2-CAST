@@ -26,6 +26,7 @@ export default class KfTrack {
   public splitLineTop: SVGLineElement;
   public splitLineBottom: SVGLineElement;
   public availableInsert: number = KF_PADDING;
+  // public availableInsert: number = KfItem.KF_WIDTH + KfItem.PADDING;
   public children: KfGroup[] = [];
 
   public static reset() {
@@ -52,6 +53,33 @@ export default class KfTrack {
               .get(child.preAniId)
               .container.getAttributeNS(null, "transform")
           ).x;
+        } else if (child.idxInGroup > 0) {
+          const prevGroup = that.children[child.idxInGroup - 1];
+          const tmpBBox: DOMRect = prevGroup.container.getBoundingClientRect(); //fixed
+          const rightBoundary: number = tmpBBox.right;
+          let mostRightBoundary: number = rightBoundary;
+          KfGroup.allKfGroups.forEach((kfGroup: KfGroup) => {
+            if (
+              kfGroup.alignTarget === prevGroup.alignId &&
+              kfGroup.alignMerge
+            ) {
+              const tmpBBox: DOMRect =
+                kfGroup.container.getBoundingClientRect(); //fixed
+              if (tmpBBox.right > mostRightBoundary) {
+                mostRightBoundary = tmpBBox.right;
+              }
+            }
+          });
+          const kftStart: number = document
+            .getElementById(KF_BG_LAYER)
+            .getBoundingClientRect().left; //fixed
+          if (
+            (mostRightBoundary - kftStart) / store.getState().kfZoomLevel >
+            that.availableInsert
+          ) {
+            transX =
+              (mostRightBoundary - kftStart) / store.getState().kfZoomLevel;
+          }
         }
         that.availableInsert = transX; //need to  test!!!!!!!!
         child.translateContainer(transX, child.posiY);
@@ -81,7 +109,6 @@ export default class KfTrack {
     ) {
       numExistTracks = 1;
     }
-
 
     this.trackPosiY =
       numExistTracks * TRACK_HEIGHT + (numExistTracks + 1) * TRACK_PADDING_TOP;

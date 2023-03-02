@@ -4,9 +4,9 @@ import {
   BTN_TYPE_CUSTOM,
   BTN_TYPE_MAIN,
   EXPORT_ICON,
-  NEW_ICON,
   OPEN_ICON,
   REDO_ICON,
+  EDIT_ICON,
   RESET_ICON,
   REVERT_ICON,
   SAVE_ICON,
@@ -70,13 +70,21 @@ class SystemMenu {
           percent: 0.375,
           evts: [{ type: "pointerdown", func: this.exportVideo }],
         },
+        // {
+        //   type: BTN_CONTENT_TYPE_ICON,
+        //   content: REDO_ICON,
+        //   buttonActionType: BTN_TYPE_CUSTOM,
+        //   strokeWidth: 1.5,
+        //   percent: 0.5,
+        //   evts: [{ type: "pointerdown", func: this.redo}],
+        // },
         {
           type: BTN_CONTENT_TYPE_ICON,
-          content: REDO_ICON,
+          content: EDIT_ICON,
           buttonActionType: BTN_TYPE_CUSTOM,
           strokeWidth: 1.5,
           percent: 0.5,
-          evts: [{ type: "pointerdown", func: this.redo }],
+          evts: [{ type: "pointerdown", func: this.edit}],
         },
         {
           type: BTN_CONTENT_TYPE_ICON,
@@ -174,6 +182,7 @@ class SystemMenu {
       // IE10+
       window.navigator.msSaveOrOpenBlob(file, fileName);
     else {
+      
       // Others
       var a = document.createElement("a"),
         url = URL.createObjectURL(file);
@@ -335,5 +344,8 @@ class SystemMenu {
   reset(): void {
     location.reload();
   }
+  edit(): void {
+    
+  } 
 }
 export const sysMenu = new SystemMenu();
