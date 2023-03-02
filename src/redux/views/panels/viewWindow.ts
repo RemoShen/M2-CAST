@@ -24,15 +24,17 @@ import {
 } from "./panel-consts";
 import ViewContent from "./viewContent";
 import ViewToolBtn from "./viewToolBtn";
-import { IViewBtnProp } from "./interfaces";
+import { Example, IViewBtnProp } from "./interfaces";
 import { ICoord } from "../../global-interfaces";
 import { NON_SKETCH_CLS } from "../../global-consts";
 import { jsTool } from "../../../util/jsTool";
 import { toggleVideoMode } from "../../action/videoAction";
 import { store } from "../../store";
 import { markSelection } from "../../../util/markSelection";
-import { updateManualSelect, updateSlectMode } from "../../action/chartAction";
-
+import { updateManualSelect, updateSelectMarksStep, updateSlectMode } from "../../action/chartAction";
+import { random } from "lodash";
+import Util from "../../../app/core/util";
+import {svgToPngLink } from "../../../util/appTool";
 export var multiSelectBtn: boolean = false;
 export default class ViewWindow {
   viewTitle: string;
@@ -249,14 +251,44 @@ export default class ViewWindow {
         {
           type: "click",
           func: () => {
-            document.getElementsByClassName('confirm-btn-container')[0].setAttribute('style', 'display:none')
-            document.getElementsByClassName('confirm-btn-container')[0].classList.add('pl')
-            document.getElementsByClassName('preview-btn-container')[0].classList.remove('dis')
-            document.getElementsByClassName('multiselect-btn-container')[0].classList.remove('dis')
-            document.getElementsByClassName('revert-icon')[0].classList.remove('dis');
+            
             const marksToconfirm: string[][] = [[...store.getState().manualSelect.marks].sort()];
-            store.dispatchSystem(updateManualSelect(store.getState().manualSelect.marks, false))
-            markSelection.beginSuggest(marksToconfirm);
+            const svg: HTMLElement = document.getElementById('visChart');
+            //random id, length = 15
+            const id: string = Math.random().toString(36).substr(2, 15);
+            let dataDatum: any[] = [{}];
+            let collection: any[] = [{}];
+            marksToconfirm[0].forEach((m) => {
+              dataDatum.push(document.getElementById(m).getAttribute('data-datum'));
+              collection.push(document.getElementById(m).getAttribute('collection'));
+              //let the m svg mark to png
+            });
+            //current trace
+            const currentTrace: ICoord[][] = store.getState().trace;
+            //all mark pngs
+            const allMarksPngFileName = svgToPngLink(svg);
+            //previous marks
+            const previousMarks: string[] = store.getState().selectMarksStep[store.getState().selectMarksStep.length - 1]
+            //gt marks
+            const gtMarks: string[] = marksToconfirm[0];
+
+            const example: Example = {
+              id: id,
+              currentTrace: currentTrace,
+              allMarksPngFileName: [],
+              previousMarks: previousMarks,
+              gtMarks: gtMarks,
+              dataDatum: dataDatum,
+              collection: collection,
+            };
+
+            store.dispatchSystem(updateSelectMarksStep(marksToconfirm[0]));
+            marksToconfirm.forEach((mark) => {
+              mark.forEach((m) => {
+                document.getElementById(m).setAttribute('style', 'opacity:0.3')
+              });
+            });
+            store.dispatchSystem(updateManualSelect(store.getState().manualSelect.marks, false));
             store.dispatchSystem(updateSlectMode('intelligent'));
           },
         },

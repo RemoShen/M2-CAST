@@ -148,22 +148,6 @@ const documentPointerDown = (e: PointerEvent) => {
     const currentTime: number = new Date().getTime();
     const diffTime: number = currentTime - lastUpTime;
     isDoubleTapping = diffTime <= DOUBLE_TAP_TIME;
-    // if (isDoubleTapping) {
-    //   // double tapping
-    //   const chartArea: DOMRect = document
-    //     .getElementById(CHART_VIEW_CONTENT_ID)
-    //     .getBoundingClientRect();
-    //   const kfArea: DOMRect = document
-    //     .getElementById(KF_VIEW_CONTENT_ID)
-    //     .getBoundingClientRect();
-    //   if (jsTool.inBoundary(chartArea, { x: e.clientX, y: e.clientY })) {
-    //     if (player.shown) {
-    //     } else {
-    //     }
-    //   } else 
-    //   if (jsTool.inBoundary(kfArea, { x: e.clientX, y: e.clientY })) {
-    //   }
-    // }
   }
   document.addEventListener("pointermove", documentPointerMove);
   document.addEventListener("pointerup", documentPointerUp);

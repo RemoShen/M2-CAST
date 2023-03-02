@@ -18,6 +18,7 @@ import {
   UPDATE_CLICK_TIME,
   UPDATE_SELECT_MODE,
   UPDATE_MANUAL_SELECT,
+  UPDATE_TRACE,
 } from "../action/chartAction";
 import { IAction } from "../action/interfaces";
 import { IState } from "../store";
@@ -68,5 +69,7 @@ export const chartReducer = (state: IState, action: IAction) => {
     case UPDATE_MANUAL_SELECT:
       const newManualSelec = newManualSelect(state.manualSelect, action.payload.set, action.payload.needComplete)
       return {...state, manualSelect: newManualSelec}
+    case UPDATE_TRACE:
+      return {...state, trace: action.payload.array}
   }
 };

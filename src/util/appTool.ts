@@ -152,7 +152,6 @@ export const addHighlight = (element: HTMLElement) => {
     selectionGuide.id = selectionGuideId;
     chartContent.appendChild(selectionGuide);
   }
-
   const opacityAttr = element.getAttribute("opacity");
   let opacity = 1;
   if (opacityAttr) {
@@ -161,7 +160,7 @@ export const addHighlight = (element: HTMLElement) => {
 
   element.classList.remove("non-framed-mark");
   element.setAttribute("opacity", (opacity * 0.3).toString());
-
+  return;
   let frame: Element;
   if (element.tagName == "text") {
     frame = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -223,5 +222,21 @@ export const removeHighlight = (element: HTMLElement) => {
   }
   element.classList.add("non-framed-mark");
   element.setAttribute("opacity", (opacity / 0.3).toString());
-  selectionGuide.removeChild(document.getElementById("qwert" + element.id))
+  // selectionGuide.removeChild(document.getElementById("qwert" + element.id))
 };
+//svgToPngBase64
+export const svgToPngLink = (svgElement: HTMLElement | SVGElement) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = svgElement.clientWidth;
+  canvas.height = svgElement.clientHeight;
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  ctx.drawImage(img, 0, 0);
+  let pngLink = ''
+  const link = document.createElement('a');
+  link.download = 'my-image.png';
+  link.href = canvas.toDataURL("image/png");
+  img.src = "data:image/svg+xml," + encodeURIComponent(new XMLSerializer().serializeToString(svgElement));
+  const matches = link.href.match(/^data:image\/png;base64,(.+)$/);
+  return matches;
+}

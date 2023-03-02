@@ -50,6 +50,7 @@ const SUGGEST_SPECS: string = "suggestSpecs";
 const CLICK_TIME: string = 'clicktime';
 const SELECT_MODE: string = 'selectmode';
 const MANUAL_SELECT: string = 'manualSelect';
+const TRACE: string = 'trace'; 
 export interface IState {
   defaultChartScaleRatio: number;
   chartScaleRatio: number;
@@ -98,6 +99,7 @@ export interface IState {
   // }
   isPreviewing?: boolean;
   manualSelect: ManualStep;
+  trace?: ICoord[][]; //trace of the user's selection
 }
 
 interface IHistory {
@@ -407,6 +409,7 @@ class Store {
     this.subscribe(CLICK_TIME, renderer.logClickTime);
     this.subscribe(SELECT_MODE, renderer.renderSelectMode);
     this.subscribe(MANUAL_SELECT, renderer.manualSelect);
+    this.subscribe(TRACE, renderer.updateTrace);
 
   }
 }

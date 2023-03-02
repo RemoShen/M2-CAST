@@ -9,10 +9,7 @@ import { VIDEO_VIEW_CONTENT_ID } from "../panels/panel-consts";
 import { NON_SKETCH_CLS } from "../../global-consts";
 import { toggleLoading } from "../../renderers/renderer-tools";
 import { jsTool } from "../../../util/jsTool";
-import { updateMode } from "../../../mil/utils/util";
 import { updateManualSelect, updateSlectMode } from "../../action/chartAction";
-import { ManualStep } from "../../action/interfaces";
-import { addHighlight } from "../../../util/appTool";
 
 
 export default class Nav {
@@ -235,14 +232,14 @@ class NavBtn {
     document
       .getElementById("appWrapper")
       .appendChild(floatingWindow.floatingWindow);
-      if(store.getState().selectMode === 'manual'){
-        store.dispatchSystem(updateSlectMode('intelligent'));
-        document.getElementsByClassName('confirm-btn-container')[0].setAttribute('style', 'display:none')
-        document.getElementsByClassName('confirm-btn-container')[0].classList.add('pl')
-        document.getElementsByClassName('preview-btn-container')[0].classList.remove('dis')
-        document.getElementsByClassName('multiselect-btn-container')[0].classList.remove('dis')
-        document.getElementsByClassName('revert-icon')[0].classList.remove('dis');
-      }
+      // if(store.getState().selectMode === 'manual'){
+      //   store.dispatchSystem(updateSlectMode('intelligent'));
+      //   document.getElementsByClassName('confirm-btn-container')[0].setAttribute('style', 'display:none')
+      //   document.getElementsByClassName('confirm-btn-container')[0].classList.add('pl')
+      //   document.getElementsByClassName('preview-btn-container')[0].classList.remove('dis')
+      //   document.getElementsByClassName('multiselect-btn-container')[0].classList.remove('dis')
+      //   document.getElementsByClassName('revert-icon')[0].classList.remove('dis');
+      // }
   }
 
   public saveProject() {
@@ -448,7 +445,7 @@ class NavBtn {
     // while(previousStep[previousStepIndex].length == 0 && previousStepIndex > 0){
     //   previousStepIndex--;
     // }
-    store.dispatchSystem(updateManualSelect(new Set(previousStep[previousStepIndex]), false));
+    // store.dispatchSystem(updateManualSelect(new Set(previousStep[previousStepIndex]), false));
     
     // precioueStep.forEach((mark: string) => {
     //   addHighlight(document.getElementById(mark));

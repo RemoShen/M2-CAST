@@ -325,7 +325,7 @@ class SystemMenu {
     setTimeout(() => {
       store.undoState();
       Loading.removeLoading();
-    }, 1);
+    }, 0);
   }
 
   redo(): void {

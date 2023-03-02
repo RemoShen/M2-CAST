@@ -69,12 +69,11 @@ export default class MarkSelection {
     const attrNames: string[] = store
       .getState()
       .sortDataAttrs.map((da) => da.attr);
-
     const dataMenu = document.getElementById(DATA_MENU_ID);
     if (dataMenu !== null) {
       dataMenu.remove();
     }
-
+    
     const dataMenuCenter: ICoord = {
       x: FIRST_LEVEL_BTN_SIZE_BIG + 10,
       y: FIRST_LEVEL_BTN_SIZE_BIG + 40 + NAV_HEIGHT,

@@ -6,7 +6,6 @@ import { markSelection } from "../../../util/markSelection";
 import {
   CHART_VIEW_CONTENT_ID,
   KF_VIEW_CONTENT_ID,
-  LASSO,
 } from "./panel-consts";
 import { ICoord } from "../../global-interfaces";
 import { sketchRecognizer } from "../../../app/core/sketchRecognizer";
@@ -17,9 +16,8 @@ import { jsTool } from "../../../util/jsTool";
 import { updateEffectType } from "../../action/canisAction";
 import { Polygon, PolygonPoint } from "../../../util/polygon";
 import { multiSelectBtn } from "./viewWindow";
-import { select } from "d3";
-import { updateManualSelect } from "../../action/chartAction";
-import { min } from "lodash";
+import { updateManualSelect, updateSlectMode, updateTrace } from "../../action/chartAction";
+import { updateMode } from "../../../mil/utils/util";
 
 export const TOUCH_NULL: number = 0;
 export const TOUCH_STRAIGHT: number = 1;
@@ -270,10 +268,15 @@ class SketchCanvas {
       let tmpTime = SketchCanvas.TIME_DELIMITER;
       const that = this;
       const judgePoints = that.tracePoints[0];
+      if(store.getState().selectMode === 'intelligent'){
+        store.dispatchSystem(updateTrace(judgePoints));
+        store.dispatchSystem(updateSlectMode('manual'));
+      }
+
       const chartArea: DOMRect = document
         .getElementById(CHART_VIEW_CONTENT_ID)
         .getBoundingClientRect();
-      const effectSketchTypes = jsTool.judgeEffectTypes(that.tracePoints);
+      // const effectSketchTypes = jsTool.judgeEffectTypes(that.tracePoints);
       if (multiSelectBtn === false) {
         // this.selectionInterval = setInterval(() => {
         tmpTime -= 100;
@@ -297,8 +300,9 @@ class SketchCanvas {
                 that.chooseMarks(tps);
               tmpSelection = [...tmpSelection, ...choseByPath.selection];
             }
+            
             if (that.sketchResult.length === 0 && combineFirst) {
-              // that.sketchResult.push([...store.getState().selection, ...tmpSelection]);
+              that.sketchResult.push([...store.getState().selection, ...tmpSelection]);
               that.sketchResult.push([...tmpSelection]);
             } else {
               that.sketchResult.push(tmpSelection);
@@ -311,87 +315,89 @@ class SketchCanvas {
             that.sketchResult[0] = that.sketchResult[0].filter(function (v) { return value.indexOf(v) == -1 })
           })
           const sktResult: string[][] = [that.sketchResult[0].sort()];
-          if (store.getState().selectMode === 'manual') {
-            const newSelect: Set<string> = new Set(sktResult[0]);
-            store.dispatchSystem(updateManualSelect(newSelect, true));
-          } else {
-            markSelection.checking(sktResult);
-          }
+          const newSelect: Set<string> = new Set(sktResult[0]);
+          store.dispatchSystem(updateManualSelect(newSelect, false));
+          
+          // if (store.getState().selectMode === 'manual') {
+            
+          // } else {
+          //   // markSelection.checking(sktResult);
+          // }
         } else {
-          switch (effectSketchTypes) {
-            case "FADE":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "fade"
-                )
-              );
-              break;
-            case "FADE OUT":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "fade out"
-                )
-              );
-              break;
-            case "CIRCLE":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "circle"
-                )
-              );
-              break;
-            case "GROW":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "grow"
-                )
-              );
-              break;
-            case "WIPE TOP":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "wipe top"
-                )
-              );
-              break;
-            case "WIPE BOTTOM":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "wipe bottom"
-                )
-              );
-              break;
-            case "WIPE LEFT":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "wipe left"
-                )
-              );
-              break;
-            case "WIPE RIGHT":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "wipe right"
-                )
-              );
-              break;
-            case "WHEEL":
-              store.dispatch(
-                updateEffectType(
-                  [store.getState().highlightKf.currentHighlightKf.aniId],
-                  "wheel"
-                )
-              );
-              break;
-          }
+          // switch (effectSketchTypes) {
+          //   case "FADE":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "fade"
+          //       )
+          //     );
+          //     break;
+          //   case "FADE OUT":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "fade out"
+          //       )
+          //     );
+          //     break;
+          //   case "CIRCLE":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "circle"
+          //       )
+          //     );
+          //     break;
+          //   case "GROW":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "grow"
+          //       )
+          //     );
+          //     break;
+          //   case "WIPE TOP":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "wipe top"
+          //       )
+          //     );
+          //     break;
+          //   case "WIPE BOTTOM":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "wipe bottom"
+          //       )
+          //     );
+          //     break;
+          //   case "WIPE LEFT":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "wipe left"
+          //       )
+          //     );
+          //     break;
+          //   case "WIPE RIGHT":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "wipe right"
+          //       )
+          //     );
+          //     break;
+          //   case "WHEEL":
+          //     store.dispatch(
+          //       updateEffectType(
+          //         [store.getState().highlightKf.currentHighlightKf.aniId],
+          //         "wheel"
+          //       )
+          //     );
+          //     break;
+          // }
         }
 
         that.tracePoints = [];

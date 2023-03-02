@@ -1,5 +1,5 @@
 import { IAction, ManualStep } from "./interfaces";
-import { IDataItem, ISortDataAttr } from "../global-interfaces";
+import { ICoord, IDataItem, ISortDataAttr } from "../global-interfaces";
 import { IOrderInfo } from "../../util/markSelection";
 import { classifySelection, combineSelectStep } from "../../util/appTool";
 
@@ -81,7 +81,7 @@ export const updateSlectMode = (mode: string) => {
     payload: {
       string: mode,
     },
-  }
+  } as IAction;
 };
 export const UPDATE_MANUAL_SELECT: string = "UPDATE_MANUAL_SELECT";
 export const updateManualSelect = (marks: Set<string>, needComplete: boolean) => {
@@ -91,8 +91,19 @@ export const updateManualSelect = (marks: Set<string>, needComplete: boolean) =>
       set: marks,
       needComplete: needComplete
     },
-  }
+  } as IAction;
 }
+
+export const UPDATE_TRACE: string = "UPDATE_TRACE";
+export const updateTrace = (mIds: ICoord[][]) => {
+  return {
+    type: UPDATE_TRACE,
+    payload: {
+      array: mIds,
+    },
+  } as IAction;
+};
+
 export const UPDATE_SUGGESTED_MARKS: string = "UPDATE_SUGGESTED_MARKS";
 export const updateSuggestedMarks = (sm: string[]) => {
   return {
