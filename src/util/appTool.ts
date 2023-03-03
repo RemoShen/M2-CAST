@@ -143,100 +143,106 @@ export const newManualSelect = (oldSelect: ManualStep, mIds: Set<string>, needCo
 };
 
 export const addHighlight = (element: HTMLElement) => {
-  const selectionGuideId = "selectionGuide";
-  const svg = document.getElementById("visChart");
-  let selectionGuide = document.getElementById(selectionGuideId) as Element;
-  const chartContent = document.getElementById("chartContent");
-  if (selectionGuide == null) {
-    selectionGuide = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    selectionGuide.id = selectionGuideId;
-    chartContent.appendChild(selectionGuide);
-  }
+  // const selectionGuideId = "selectionGuide";
+  // const svg = document.getElementById("visChart");
+  // let selectionGuide = document.getElementById(selectionGuideId) as Element;
+  // const chartContent = document.getElementById("chartContent");
+  // if (selectionGuide == null) {
+  //   selectionGuide = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  //   selectionGuide.id = selectionGuideId;
+  //   chartContent.appendChild(selectionGuide);
+  // }
   const opacityAttr = element.getAttribute("opacity");
   let opacity = 1;
-  if (opacityAttr) {
-    opacity = Number(opacityAttr);
+  // if (opacityAttr) {
+  //   opacity = Number(opacityAttr);
+  // }
+
+  // element.classList.remove("non-framed-mark");
+  if (element.getAttribute('opacity') == '1') {
+    element.style.opacity = "0.3";
   }
+  // return;
+  // let frame: Element;
+  // if (element.tagName == "text") {
+  //   frame = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  //   const boundingBox = element.getBoundingClientRect();
+  //   const topLeft = jsTool.screenToSvgCoords(svg, boundingBox.left, boundingBox.top);
+  //   const bottomRight = jsTool.screenToSvgCoords(svg, boundingBox.right, boundingBox.bottom);
+  //   const transform = new Polygon().parseTransform(chartContent);
+  //   frame.setAttribute("x", ((topLeft.x - transform.e) / transform.a).toString());
+  //   frame.setAttribute("y", ((topLeft.y - transform.f) / transform.a).toString());
+  //   frame.setAttribute("height", ((bottomRight.y - topLeft.y) / transform.a).toString());
+  //   frame.setAttribute("width", ((bottomRight.x - topLeft.x) / transform.a).toString());
+  // } else {
+  //   frame = element.cloneNode() as Element;
+  //   frame.removeAttribute("data-datum");
+  // }
+  // frame.id = "qwert" + element.id;
+  // frame.setAttribute("fill", "none");
+  // frame.setAttribute("stroke", "black");
+  // frame.setAttribute("stroke-width", "1");
+  // frame.setAttribute("stroke-dasharray", "5, 5");
+  // frame.setAttribute("opacity", "1");
+  // frame.setAttribute("transform", new Polygon().getTransformFromChartContent(element).toString());
 
-  element.classList.remove("non-framed-mark");
-  element.setAttribute("opacity", (opacity * 0.3).toString());
-  return;
-  let frame: Element;
-  if (element.tagName == "text") {
-    frame = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    const boundingBox = element.getBoundingClientRect();
-    const topLeft = jsTool.screenToSvgCoords(svg, boundingBox.left, boundingBox.top);
-    const bottomRight = jsTool.screenToSvgCoords(svg, boundingBox.right, boundingBox.bottom);
-    const transform = new Polygon().parseTransform(chartContent);
-    frame.setAttribute("x", ((topLeft.x - transform.e) / transform.a).toString());
-    frame.setAttribute("y", ((topLeft.y - transform.f) / transform.a).toString());
-    frame.setAttribute("height", ((bottomRight.y - topLeft.y) / transform.a).toString());
-    frame.setAttribute("width", ((bottomRight.x - topLeft.x) / transform.a).toString());
-  } else {
-    frame = element.cloneNode() as Element;
-    frame.removeAttribute("data-datum");
-  }
-  frame.id = "qwert" + element.id;
-  frame.setAttribute("fill", "none");
-  frame.setAttribute("stroke", "black");
-  frame.setAttribute("stroke-width", "1");
-  frame.setAttribute("stroke-dasharray", "5, 5");
-  frame.setAttribute("opacity", "1");
-  frame.setAttribute("transform", new Polygon().getTransformFromChartContent(element).toString());
+  // const animation = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+  // animation.setAttribute("attributeName", "stroke-dashoffset");
+  // animation.setAttribute("from", "0");
+  // animation.setAttribute("to", "10");
+  // animation.setAttribute("dur", "1");
+  // animation.setAttribute("repeatCount", "indefinite");
+  // frame.appendChild(animation);
 
-  const animation = document.createElementNS("http://www.w3.org/2000/svg", "animate");
-  animation.setAttribute("attributeName", "stroke-dashoffset");
-  animation.setAttribute("from", "0");
-  animation.setAttribute("to", "10");
-  animation.setAttribute("dur", "1");
-  animation.setAttribute("repeatCount", "indefinite");
-  frame.appendChild(animation);
+  // const animation2 = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+  // animation2.setAttribute("attributeName", "stroke");
+  // animation2.setAttribute("from", "black");
+  // animation2.setAttribute("to", "white");
+  // animation2.setAttribute("dur", "1");
+  // animation2.setAttribute("repeatCount", "indefinite");
+  // frame.appendChild(animation2);
 
-  const animation2 = document.createElementNS("http://www.w3.org/2000/svg", "animate");
-  animation2.setAttribute("attributeName", "stroke");
-  animation2.setAttribute("from", "black");
-  animation2.setAttribute("to", "white");
-  animation2.setAttribute("dur", "1");
-  animation2.setAttribute("repeatCount", "indefinite");
-  frame.appendChild(animation2);
-
-  frame.classList.forEach(value => frame.classList.remove(value));
-  selectionGuide.appendChild(frame);
+  // frame.classList.forEach(value => frame.classList.remove(value));
+  // selectionGuide.appendChild(frame);
 };
 
 export const removeHighlight = (element: HTMLElement) => {
-  const selectionGuideId = "selectionGuide";
-  let selectionGuide = document.getElementById(selectionGuideId) as Element;
-  const chartContent = document.getElementById("chartContent");
-  if (selectionGuide == null) {
-    selectionGuide = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    selectionGuide.id = selectionGuideId;
-    selectionGuide.classList.add("selectionGuide");
-    chartContent.appendChild(selectionGuide);
+  if (element.style.opacity == '0.3') {
+    element.style.opacity = '1';
   }
+  // const selectionGuideId = "selectionGuide";
+  // let selectionGuide = document.getElementById(selectionGuideId) as Element;
+  // const chartContent = document.getElementById("chartContent");
+  // if (selectionGuide == null) {
+  //   selectionGuide = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  //   selectionGuide.id = selectionGuideId;
+  //   selectionGuide.classList.add("selectionGuide");
+  //   chartContent.appendChild(selectionGuide);
+  // }
 
-  const opacityAttr = element.getAttribute("opacity");
-  let opacity = 1;
-  if (opacityAttr) {
-    opacity = Number(opacityAttr);
-  }
-  element.classList.add("non-framed-mark");
-  element.setAttribute("opacity", (opacity / 0.3).toString());
-  // selectionGuide.removeChild(document.getElementById("qwert" + element.id))
+  // const opacityAttr = element.getAttribute("opacity");
+  // let opacity = 1;
+  // if (opacityAttr) {
+  //   opacity = Number(opacityAttr);
+  // }
+  // element.classList.add("non-framed-mark");
+  // element.setAttribute("opacity", (opacity / 0.3).toString());
+  // // selectionGuide.removeChild(document.getElementById("qwert" + element.id))
 };
 //svgToPngBase64
-export const svgToPngLink = (svgElement: HTMLElement | SVGElement) => {
+export const svgToPngLink = (svgElement: Element) => {
   const canvas = document.createElement("canvas");
   canvas.width = svgElement.clientWidth;
   canvas.height = svgElement.clientHeight;
   const ctx = canvas.getContext("2d");
   const img = new Image();
-  ctx.drawImage(img, 0, 0);
-  let pngLink = ''
-  const link = document.createElement('a');
-  link.download = 'my-image.png';
-  link.href = canvas.toDataURL("image/png");
+  img.onload = function () {
+    ctx.drawImage(img, 0, 0);
+    const link = document.createElement('a');
+    link.download = 'my-image.png';
+    link.href = canvas.toDataURL("image/png");
+    // link.click();
+  };
   img.src = "data:image/svg+xml," + encodeURIComponent(new XMLSerializer().serializeToString(svgElement));
-  const matches = link.href.match(/^data:image\/png;base64,(.+)$/);
-  return matches;
+  return img.src;
 }

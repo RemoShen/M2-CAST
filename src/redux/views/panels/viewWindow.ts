@@ -24,7 +24,7 @@ import {
 } from "./panel-consts";
 import ViewContent from "./viewContent";
 import ViewToolBtn from "./viewToolBtn";
-import { Example, IViewBtnProp } from "./interfaces";
+import { Example, IViewBtnProp, EXpng } from "./interfaces";
 import { ICoord } from "../../global-interfaces";
 import { NON_SKETCH_CLS } from "../../global-consts";
 import { jsTool } from "../../../util/jsTool";
@@ -34,7 +34,8 @@ import { markSelection } from "../../../util/markSelection";
 import { updateManualSelect, updateSelectMarksStep, updateSlectMode } from "../../action/chartAction";
 import { random } from "lodash";
 import Util from "../../../app/core/util";
-import {svgToPngLink } from "../../../util/appTool";
+import { svgToPngLink } from "../../../util/appTool";
+import util from "../../../app/core/util";
 export var multiSelectBtn: boolean = false;
 export default class ViewWindow {
   viewTitle: string;
@@ -251,22 +252,75 @@ export default class ViewWindow {
         {
           type: "click",
           func: () => {
-            
+            // store.getState().selectMarksStep.forEach((step) => {
+            //   step.forEach((s) => {
+            //     document.getElementById(s).style.opacity = '0.3';
+            //   });
+            // });
             const marksToconfirm: string[][] = [[...store.getState().manualSelect.marks].sort()];
             const svg: HTMLElement = document.getElementById('visChart');
             //random id, length = 15
             const id: string = Math.random().toString(36).substr(2, 15);
-            let dataDatum: any[] = [{}];
-            let collection: any[] = [{}];
-            marksToconfirm[0].forEach((m) => {
-              dataDatum.push(document.getElementById(m).getAttribute('data-datum'));
-              collection.push(document.getElementById(m).getAttribute('collection'));
-              //let the m svg mark to png
+            let dataDatum: any[] = [];
+            let collection: any[] = [];
+            let allMarksPng: EXpng[] = [];
+            store.getState().dataTable.forEach((value, id) => {
+              dataDatum.push({key:id, value:document.getElementById(id).getAttribute('data-datum')});
+              collection.push({key:id, value:document.getElementById(id).getAttribute('collection')});
+            });
+            util.nonDataTable.forEach((value, id) => {
+              dataDatum.push({key:id, value:document.getElementById(id).getAttribute('data-datum')});
+              collection.push({key:id, value:document.getElementById(id).getAttribute('collection')});
             });
             //current trace
             const currentTrace: ICoord[][] = store.getState().trace;
             //all mark pngs
-            const allMarksPngFileName = svgToPngLink(svg);
+            store.getState().dataTable.forEach((mark, markkey) => {
+              document.getElementById(markkey).style.opacity = '0';
+            });// all 0
+            Util.nonDataTable.forEach((mark, markkey) => {
+              document.getElementById(markkey).style.opacity = '0';
+            });
+            store.getState().dataTable.forEach((mark, markkey) => {
+              if (store.getState().selectMarksStep.length != 0) {
+                if (store.getState().selectMarksStep[store.getState().selectMarksStep.length - 1].includes(markkey)) {
+                  document.getElementById(markkey).style.opacity = '0.3';
+                } else {
+                  document.getElementById(markkey).style.opacity = '1';
+                }
+              } else {
+                document.getElementById(markkey).style.opacity = '1';
+              }
+              const png = svgToPngLink(svg);
+              allMarksPng.push({ markId: markkey, png: png });
+              document.getElementById(markkey).style.opacity = '0';
+            });
+            Util.nonDataTable.forEach((mark, markkey) => {
+              if (store.getState().selectMarksStep.length != 0) {
+                if (store.getState().selectMarksStep[store.getState().selectMarksStep.length - 1].includes(markkey)) {
+                  document.getElementById(markkey).style.opacity = '0.3';
+                } else {
+                  document.getElementById(markkey).style.opacity = '1';
+                }
+              } else {
+                document.getElementById(markkey).style.opacity = '1';
+              }
+              const png = svgToPngLink(svg);
+              allMarksPng.push({ markId: markkey, png: png });
+              document.getElementById(markkey).style.opacity = '0';
+            });
+            store.getState().dataTable.forEach((mark, markkey) => {
+              document.getElementById(markkey).style.opacity = '1';
+            });
+            util.nonDataTable.forEach((mark, markkey) => {
+              document.getElementById(markkey).style.opacity = '1';
+            });
+            // store.getState().selectMarksStep.forEach((step) => {
+            //   step.forEach((s) => {
+            //     document.getElementById(s).style.opacity = '0.3';
+            //   });
+            // });
+
             //previous marks
             const previousMarks: string[] = store.getState().selectMarksStep[store.getState().selectMarksStep.length - 1]
             //gt marks
@@ -275,17 +329,32 @@ export default class ViewWindow {
             const example: Example = {
               id: id,
               currentTrace: currentTrace,
-              allMarksPngFileName: [],
+              allMarksPngFileName: allMarksPng,
               previousMarks: previousMarks,
               gtMarks: gtMarks,
               dataDatum: dataDatum,
               collection: collection,
             };
+            // function downloadJSON() {
+              const filename = example.id + '.json';   // 文件名
+            
+              const blob = new Blob([JSON.stringify(example, null, 2)], {   // 将 JSON 数据转换成 Blob 对象
+                type: 'application/json'
+              });
+            
+              const url = URL.createObjectURL(blob);   // 创建一个 URL 对象
+            
+              const link = document.createElement('a');   // 创建一个 a 标签元素
+              link.href = url;
+              link.download = filename;   // 设置文件名
+              link.click();   // 触发下载操作
+              URL.revokeObjectURL(url);   // 释放 URL 对象
+            // }
 
             store.dispatchSystem(updateSelectMarksStep(marksToconfirm[0]));
             marksToconfirm.forEach((mark) => {
               mark.forEach((m) => {
-                document.getElementById(m).setAttribute('style', 'opacity:0.3')
+                document.getElementById(m).style.opacity = '0.3';
               });
             });
             store.dispatchSystem(updateManualSelect(store.getState().manualSelect.marks, false));
